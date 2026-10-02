@@ -34,40 +34,52 @@ python3 mirelo.py doctor
 audio. `setup.sh` installs the skill in `~/.openclaw/skills/mirelo-sfx` and points
 it at this clone. Keep the clone in place; rerun setup if you move it.
 
-## Try the Artemis I liftoff clip
+## Try the alien-shooter game clip
 
-The default is an eight-second silent Artemis I launch clip, credited to
-NASA/Sam Lott. See [source and clip details](examples/README.md). Mirelo
-generates a new sound design; it is not the original NASA recording.
+The default is eight seconds of original arcade gameplay: a player spaceship
+moves and shoots, three enemies explode, and the score climbs. The large hit
+flashes and isolated sound bursts make the picture-to-sound connection clear.
+See [clip details](examples/README.md).
 
-[![Artemis I liftoff](examples/artemis-liftoff.jpg)](examples/artemis-liftoff.mp4)
+[![Alien-shooter arcade gameplay](examples/alien-shooter.jpg)](examples/alien-shooter.mp4)
 
-[Watch the example with Mirelo-generated sound](examples/artemis-liftoff-mirelo.mp4).
+[Watch the example with Mirelo-generated sound](examples/alien-shooter-mirelo.mp4).
 This pre-generated sample plays without API access or spending credits.
+Check it on your presentation speaker before using it in a crowded room.
 
 Generate one sound design with one command. It uploads the clip, quotes the
 cost, checks the 80-credit cap and affordability, then submits one variant:
 
 ```bash
 python3 mirelo.py generate \
-  --video examples/artemis-liftoff.mp4 \
-  --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
+  --video examples/alien-shooter.mp4 \
+  --prompt "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots."
 ```
 
-Read the cost, status and `out` in the JSON.
-
-Open `player.html` from that folder in a browser. Each completed run contains
-`silent.mp4`, `sound.wav`, `with-sound.mp4`, `player.html`, and `job.json`.
+Read the cost, status and `out` in the JSON. Open `player.html` from that
+folder in a browser. Each completed run contains `silent.mp4`, `sound.wav`,
+`with-sound.mp4`, `player.html`, and `job.json`.
 
 Or ask your existing OpenClaw agent:
 
-> Add sound effects to ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 with this prompt:
-> "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." Report the cost and
-> sync onsets exactly as the JSON shows them.
+> Add sound effects to ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4 with this prompt:
+> "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots." Report credits and detected onsets exactly as the JSON prints them.
+
+[Play the arcade game locally](examples/play-game.html): arrow keys move,
+Space fires, R restarts and M toggles sound. Each enemy hit plays a burst cut
+from this Mirelo result. The game and sound playback work offline and spend
+no credits. Download the clone first; GitHub's file view does not run HTML.
+
+For audience participation, play the silent gameplay and let someone describe
+the sound style: for example, retro laser, comic-book blast, or futuristic
+cannon. Ask the agent for that one sound design, then compare the result.
+The bundled sample is one laser-blast design; other styles require their own
+explicit generation request.
 
 An explicit generation or refinement request authorizes one paid job within
-the 80-credit cap. See the
-[demo script](docs/demo.md) for a short presentation and fallback plan.
+the 80-credit cap. See the [demo script](docs/demo.md) for the presentation
+sequence and fallback. The [Artemis launch sample](examples/artemis-liftoff-mirelo.mp4)
+remains available as an alternative.
 
 ## Cost, recovery, and credentials
 
@@ -95,7 +107,17 @@ the 80-credit cap. See the
 
 ## Validation
 
-On October 2, 2026, one direct CLI generation of the Artemis clip completed
+On October 2, 2026, one direct alien-shooter generation on dspark quoted and
+charged 80 credits in 16.27 seconds. The eight-second H.264/AAC result is
+bundled unchanged. Measured onsets are `[0.0, 1.86, 4.08, 6.24]`; all three
+expected hits at `[1.8, 4.0, 6.2]` passed the ±100 ms signal check. The extra
+opening burst and near-full-scale peaks mean this still needs a listening
+check on the presentation speaker. Jay accepted the generated video in chat;
+crowded-room speaker playback remains unverified. The playable game uses a trimmed first-hit
+sample, with a 20 ms fade at the cut's end; it does not generate audio live.
+A fresh OpenClaw agent check awaits the separate gateway repair.
+
+One direct CLI generation of the Artemis clip completed
 on dspark: 80 credits quoted and charged, 16.40 seconds for the full command,
 and an eight-second H.264/AAC result. The generated sample is included above.
 This verifies the direct CLI workflow; a fresh OpenClaw agent check awaits

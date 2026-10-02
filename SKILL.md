@@ -1,6 +1,6 @@
 ---
 name: mirelo-sfx
-description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. For an explicit generation or refinement request, run `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <video.mp4> --prompt \"<sound description>\"` immediately within the 80-credit cap; it uploads, quotes, checks affordability and submits one variant. A cost-only request uses preflight and must never generate. Demo clip: ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask or state the chosen prompt. Offer nothing beyond this skill. Read this SKILL.md before use."
+description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. For an explicit generation or refinement request, run `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <video.mp4> --prompt \"<sound description>\"` immediately within the 80-credit cap; it uploads, quotes, checks affordability and submits one variant. A cost-only request uses preflight and must never generate. Demo clip: ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask or state the chosen prompt. Offer nothing beyond this skill. Read this SKILL.md before use."
 ---
 
 # Mirelo SFX
@@ -54,12 +54,14 @@ never guess output you did not see.
   that window expired or is unknown, stop and reconcile the original job with
   Mirelo; do not create another run to bypass the guard.
 
-The default example is a silent Artemis I liftoff clip (NASA/Sam Lott). Generated
-audio is Mirelo sound design, not the original NASA recording. See
-`examples/README.md` in the clone for source credit. The ball clip
-`examples/silent.mp4` remains a sync test fixture. The Artemis clip has no
-impact-timing sidecar: timing is not automatically checked and `sync.ok` is
-omitted. Do not invent missing sync fields; watch and listen to assess alignment.
+The default example is original alien-shooter arcade gameplay: a player ship
+moves and fires, three enemies explode, and the score rises. Kill events occur
+at 1.8, 4.0 and 6.2 seconds. Its optional sync sidecar records those expected
+events; report measured onsets and sync exactly, without inferring listening
+quality. Let an audience member choose a sound description, then request one
+generation. Do not generate extra styles automatically. The ball clip remains
+the historical sync fixture; Artemis remains an alternative footage example
+with source credit in `examples/README.md`.
 
 ## Workflow
 
@@ -68,8 +70,8 @@ omitted. Do not invent missing sync fields; watch and listen to assess alignment
 
    ```bash
    python3 ~/mirelo-sfx-openclaw/mirelo.py generate \
-     --video ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 \
-     --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
+     --video ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4 \
+     --prompt "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots."
    ```
 
 2. If the status is `poll_timeout`:

@@ -1,6 +1,40 @@
 # Example clips
 
-## Artemis liftoff (quickstart)
+## Alien shooter (quickstart)
+
+`alien-shooter.mp4` is original silent arcade gameplay, authored for this
+demo in HyperFrames. A player spacecraft moves, fires at three large enemies,
+and earns 100 points as each explodes. The three kill events are at 1.8, 4.0
+and 6.2 seconds, recorded in `alien-shooter.json`. All sprites and graphics
+are original; no branded game characters or stock game footage are used.
+
+[`alien-shooter-mirelo.mp4`](alien-shooter-mirelo.mp4) adds **Mirelo-generated
+sound design**. Play the completed sample without API access or credit usage.
+One job on October 2, 2026 quoted/charged 80 credits and took 16.27 seconds
+for the full CLI command. Measured onsets are `[0.0, 1.86, 4.08, 6.24]`;
+`sync.ok` is `true` for the expected hits. The extra opening burst and near-full-scale
+peaks require a speaker listening check. Jay accepted this video in chat;
+no crowd playback is claimed.
+
+[`play-game.html`](play-game.html) is a playable local game: arrows move,
+Space fires, R restarts and M toggles sound. Its hit sound is
+`alien-hit-mirelo.wav`, cut from 1.84–2.56 seconds of the same generated WAV
+with a 20 ms fade at the end. Every hit replays this sample; gameplay has no
+API calls, credentials or credit cost. Clone/download the repository and open
+the HTML locally. The deterministic MP4 is the input to the generation command;
+the playable game responds to the player's actions.
+
+Suggested sound prompt:
+
+> Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.
+
+Let an audience member choose one sound style before a requested generation.
+The large explosions and score changes provide visual cues for the audio.
+Actual audibility must be checked on the venue speaker. The onset detector
+checks proximity to expected events within 100 ms; it permits extra onsets and
+does not assess sound quality or crowded-room audibility.
+
+## Artemis liftoff (alternative footage)
 
 `artemis-liftoff.mp4` is an eight-second silent, real-world video of Artemis I
 lifting off. The bright exhaust plume and rising rocket give the sound prompt
