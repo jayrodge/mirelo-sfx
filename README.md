@@ -42,6 +42,9 @@ generates a new sound design; it is not the original NASA recording.
 
 [![Artemis I liftoff](examples/artemis-liftoff.jpg)](examples/artemis-liftoff.mp4)
 
+[Watch the example with Mirelo-generated sound](examples/artemis-liftoff-mirelo.mp4).
+This pre-generated sample plays without API access or spending credits.
+
 Generate one sound design with one command. It uploads the clip, quotes the
 cost, checks the 80-credit cap and affordability, then submits one variant:
 
@@ -92,8 +95,14 @@ the 80-credit cap. See the
 
 ## Validation
 
-The Artemis clip has not yet had a paid audio-generation test. The included
-`examples/silent.mp4` and `silent.json` remain the bouncing-ball sync fixture.
+On October 2, 2026, one direct CLI generation of the Artemis clip completed
+on dspark: 80 credits quoted and charged, 16.40 seconds for the full command,
+and an eight-second H.264/AAC result. The generated sample is included above.
+This verifies the direct CLI workflow; a fresh OpenClaw agent check awaits
+the separate gateway repair. Launch sound alignment needs manual watch/listen
+because this clip has no expected-impact sidecar.
+
+The included `examples/silent.mp4` and `silent.json` remain the bouncing-ball sync fixture.
 On September 30, 2026, four agent-driven jobs on that ball clip succeeded at 80 credits each
 (320 total). Generation turns took about 20–30 seconds. Two outputs passed
 the clip's signal-based sync check; two failed. Jay approved run 1 after headphone playback on October 2, 2026.

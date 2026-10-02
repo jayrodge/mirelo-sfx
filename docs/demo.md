@@ -9,7 +9,8 @@ hosted audio tool used by an existing OpenClaw agent.
 1. Run `python3 mirelo.py doctor` and confirm API access and spend capacity.
 2. Prepare the approved ball run 1 as a known-good output folder with all five files: `silent.mp4`,
    `sound.wav`, `with-sound.mp4`, `player.html`, and `job.json`. Keep it under
-   `outputs/fallback/` (Git-ignored). Generated audio is not bundled with this repo.
+   `outputs/fallback/` (Git-ignored). The repo also includes an Artemis video
+   with Mirelo-generated sound; listen to it on the presentation machine.
 3. Open its `player.html` and listen on headphones. Check the sound at both
    visible impacts and playback on the presentation machine.
 4. Name a station owner and provide headphones. Without a listening setup
@@ -21,13 +22,14 @@ The default `examples/artemis-liftoff.mp4` shows the real Artemis I launch:
 eight seconds, 1280×720 at 30 fps, with the original audio removed. It uses
 55.0–63.0 seconds of the NASA/Sam Lott source. See
 [source and clip details](../examples/README.md). Any generated audio is Mirelo
-sound design, not the actual NASA recording. This new clip has not yet had a
-paid audio-generation test.
+sound design, not the actual NASA recording. The bundled
+[`examples/artemis-liftoff-mirelo.mp4`](../examples/artemis-liftoff-mirelo.mp4)
+is a completed sound design; it plays without API access or credits.
 
 1. Play the silent clip. Say: “The agent can use a sound tool to add effects
    that follow the video.”
-2. If demonstrating the validated fallback, switch to the ball clip and play
-   its prepared before/after result with headphones. Label it as the ball example.
+2. Play the bundled Artemis sound design with headphones and compare it with
+   the silent launch. Keep the approved ball player as the validated fallback.
 3. If there is time for one live generation within the 80-credit cap, ask the agent:
 
    > Add sound effects to ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 with this
@@ -48,6 +50,15 @@ automatically iterate during a presentation. For a cost-only request, use
 `preflight`, report the quote and stop without generating.
 
 ## What has been tested
+
+On October 2, 2026, one direct `generate` command on dspark internally quoted
+and submitted one Artemis job. Quote and actual charge were 80 credits;
+the complete CLI command took 16.40 seconds. The result is eight seconds of
+H.264 video with mono AAC audio at 44,100 Hz. Detected onsets were `[0.0]`;
+`sync.ok` is omitted because the launch has no expected-impact sidecar.
+These are execution/media checks, not headphone approval or event qualification.
+The updated skill is installed; a fresh agent check waits for the separate
+OpenClaw gateway repair.
 
 These four runs used the retained `examples/silent.mp4` ball fixture, not the
 Artemis video. Its expected impacts occur at 2.0 s and 5.0 s, as recorded in
