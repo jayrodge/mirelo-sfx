@@ -66,6 +66,6 @@ detector checks for an onset within ±100 ms of each expected impact; a passing
 result does not establish perceptual sound quality. Busy prompts and a softer
 refinement produced failing sync checks in this small sample.
 
-**Status: headphone review pending; Demo Ready is not established.** Before
-promoting the demo, listen to the chosen fallback, verify the playback setup,
-and rehearse the quote/approval/generation flow on the presentation machine.
+**Headphone review: run 1 approved by Jay on October 2, 2026.** Use run 1 as
+the fallback. Event Demo Ready is not established: validate the event image,
+network, presentation playback and operator rehearsal before promotion.

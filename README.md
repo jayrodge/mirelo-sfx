@@ -93,8 +93,9 @@ Approve the quoted cost in a second message to generate. See the
 
 On September 30, 2026, four agent-driven jobs succeeded at 80 credits each
 (320 total). Generation turns took about 20–30 seconds. Two outputs passed
-the clip's signal-based sync check; two failed. Headphone review remains
-pending, so these runs do not establish Demo Ready status. Details and
+the clip's signal-based sync check; two failed. Jay approved run 1 after headphone playback on October 2, 2026.
+Validation on the actual event image and presentation setup remains pending,
+so these runs do not establish event Demo Ready status. Details and
 presentation gates are in the [demo notes](docs/demo.md).
 
 The tests mock Mirelo requests and spend no credits; FFmpeg exercises local
