@@ -42,23 +42,16 @@ generates a new sound design; it is not the original NASA recording.
 
 [![Artemis I liftoff](examples/artemis-liftoff.jpg)](examples/artemis-liftoff.mp4)
 
-First upload the clip and get a free credit quote:
-
-```bash
-python3 mirelo.py preflight \
-  --video examples/artemis-liftoff.mp4 \
-  --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
-```
-
-Read `quoted_credits` and `out` in the JSON. After accepting the cost, run the
-paid command using the **same video, prompt, and output folder**:
+Generate one sound design with one command. It uploads the clip, quotes the
+cost, checks the 80-credit cap and affordability, then submits one variant:
 
 ```bash
 python3 mirelo.py generate \
   --video examples/artemis-liftoff.mp4 \
-  --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." \
-  --out <OUT_FROM_PREFLIGHT>
+  --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
 ```
+
+Read the cost, status and `out` in the JSON.
 
 Open `player.html` from that folder in a browser. Each completed run contains
 `silent.mp4`, `sound.wav`, `with-sound.mp4`, `player.html`, and `job.json`.
@@ -66,27 +59,30 @@ Open `player.html` from that folder in a browser. Each completed run contains
 Or ask your existing OpenClaw agent:
 
 > Add sound effects to ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 with this prompt:
-> "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." Tell me the quoted cost first and wait for approval. Report
+> "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." Report the cost and
 > sync onsets exactly as the JSON shows them.
 
-Approve the quoted cost in a second message to generate. See the
+An explicit generation or refinement request authorizes one paid job within
+the 80-credit cap. See the
 [demo script](docs/demo.md) for a short presentation and fallback plan.
 
 ## Cost, recovery, and credentials
 
 - `preflight` uploads your video to Mirelo and quotes credits; it starts no generation.
-- `generate` spends credits. The installed agent skill asks for approval first.
-  The CLI paid command assumes you have accepted the quote.
+- `generate` spends credits after its internal quote, cap and affordability checks.
+  The installed agent skill runs it directly for an explicit generation request.
+  For cost-only requests, use `preflight` and stop after the quote.
 - Each job requests one variant and defaults to an 80-credit cap. Quotes above
   the cap or beyond the account's spend capacity are refused.
 - A quote is bound to the saved video and prompt. If you change the sound
-  description, run a fresh preflight and accept the new quote.
+  description, run a fresh preflight with the new prompt, then generate.
+  Requested refinements use a new folder; the agent never automatically iterates.
 - If a submission response is lost, retry the exact same `generate` command.
   The saved request and key recover the original job. Recovery stops after
   24 hours, or if the submission age is unknown; reconcile the original job
   before deciding whether to start another paid generation.
 - Polling stops after five minutes. If the result is `poll_timeout`, continue
-  with `python3 mirelo.py resume --out <OUT_FROM_PREFLIGHT>`. Resume never
+  with `python3 mirelo.py resume --out <OUT_FROM_JSON>`. Resume never
   resubmits a job. Use a fresh folder for a new generation or refinement.
 - Keys are read from `MIRELO_API_KEY`, then `.env` beside `mirelo.py`, then
   `~/.config/mirelo/credentials`. Key files must be private, mode `600`.

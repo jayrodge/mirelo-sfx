@@ -404,7 +404,7 @@ def preflight(video: Path, out: Path, client, prompt: str | None = None, max_cre
     if state and state.get("status") == "submitting":
         raise UsageError(f"a submission is pending in {out}; re-run generate with the same video and prompt")
     out.mkdir(parents=True, exist_ok=True)
-    # Stage separately so a failed re-quote never overwrites the last approved snapshot.
+    # Stage separately so a failed re-quote never overwrites the last quoted snapshot.
     with tempfile.TemporaryDirectory(prefix=".preflight-", dir=out) as staging:
         snapshot = Path(staging) / ("source" + video.suffix)
         shutil.copyfile(video, snapshot)
@@ -454,7 +454,7 @@ def generate(video: Path, prompt: str, out: Path, client, max_credits: int = DEF
     elif state and state.get("status") == "quoted":
         if state["prompt"] != prompt or state["video"] != str(video):
             raise UsageError("video or prompt differs from the saved quote; run a fresh preflight with the "
-                             "intended video and prompt, then approve that quote before generate")
+                             "intended video and prompt, then run generate")
     else:
         preflight(video, out, client, prompt, max_credits, probe)
         state = load_state(out)
@@ -581,7 +581,7 @@ def _parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor", help="check Python, ffmpeg, the API key and API access (free)")
     for name, help_text in (("preflight", "upload the video and quote credits; free, submits nothing"),
-                            ("generate", "PAID: submit one generation (after preflight), poll, and build outputs")):
+                            ("generate", "PAID: upload, quote, check cost, submit one generation, and build outputs")):
         p = sub.add_parser(name, help=help_text)
         p.add_argument("--video", required=True)
         p.add_argument("--prompt", required=(name == "generate"))
@@ -609,8 +609,8 @@ def main(argv: list[str] | None = None) -> int:
             gen = ["python3", str(Path(__file__).resolve()), "generate" if args.prompt else "preflight",
                    "--video", str(video.resolve()),
                    "--prompt", args.prompt or "<describe the sound>", "--out", str(out)]
-            data["next"] = (("Tell the user the quoted credits and ask before running (PAID): " if args.prompt else
-                             "Choose a sound description, then get a fresh free quote before approval: ")
+            data["next"] = (("Optional paid generation command: " if args.prompt else
+                             "Choose a sound description, then get a fresh free quote: ")
                             + shlex.join(gen))
         else:
             video = Path(args.video).expanduser()

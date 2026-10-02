@@ -159,10 +159,15 @@ def test_preflight_uploads_then_quotes_and_never_creates(run):
     assert json.loads((run.out / "job.json").read_text())["asset_id"] == "asset_1"
 
 
-def test_create_sends_idempotency_key_and_wait(run):
+def test_fresh_generate_quotes_before_exactly_one_create_with_same_body(run):
     http = FakeHTTP(create=(200, job_body("succeeded", url="https://dl/a.wav", credits=80)))
     assert run("generate", http)["status"] == "done"
-    create = next(r for r in http.requests if "/generations?wait=25" in r[1])
+    quotes = [r for r in http.requests if r[1].endswith("/preflight")]
+    creates = [r for r in http.requests if "/generations?wait=25" in r[1]]
+    assert len(quotes) == len(creates) == 1
+    quote, create = quotes[0], creates[0]
+    assert http.requests.index(quote) < http.requests.index(create)
+    assert quote[3] == create[3] and json.loads(create[3])["num_variants"] == 1
     assert create[2]["Idempotency-Key"] == json.loads((run.out / "job.json").read_text())["idempotency_key"]
 
 
@@ -314,12 +319,12 @@ def test_immediate_submission_retry_keeps_first_epoch_key_and_body(run, monkeypa
 
 
 @pytest.mark.parametrize("initial_prompt", [None, "original prompt"])
-def test_prompt_change_requires_fresh_quote_and_approval(run, initial_prompt):
+def test_prompt_change_requires_fresh_quote_then_generate(run, initial_prompt):
     http = FakeHTTP(create=(200, job_body("succeeded", url="https://dl/a.wav", credits=80)))
     run("preflight", http, prompt=initial_prompt)
     initial = mirelo.load_state(run.out)
     count = len(http.requests)
-    with pytest.raises(mirelo.UsageError, match="fresh preflight.*approve"):
+    with pytest.raises(mirelo.UsageError, match="fresh preflight.*then run generate"):
         run("generate", http, prompt="new prompt")
     assert len(http.requests) == count and mirelo.load_state(run.out) == initial
     run("preflight", http, prompt="new prompt")
@@ -339,6 +344,23 @@ def test_promptless_cli_quote_next_command_requotes(tmp_path, monkeypatch, capsy
     data = json.loads(capsys.readouterr().out)
     cmd = shlex.split(data["next"].split(": ", 1)[1])
     assert cmd[2] == "preflight" and cmd[cmd.index("--prompt") + 1] == "<describe the sound>"
+
+
+def test_cli_quote_next_is_optional_paid_command_without_approval_gate(tmp_path, monkeypatch, capsys):
+    video = tmp_path / "silent.mp4"
+    video.write_bytes(b"video")
+    out = tmp_path / "out"
+    monkeypatch.setattr(mirelo, "load_api_key", lambda: (KEY, "test"))
+    monkeypatch.setattr(mirelo, "preflight", lambda *args: {"quoted_credits": 80})
+    monkeypatch.setattr(mirelo, "generate", lambda *args: pytest.fail("cost-only preflight generated"))
+    assert mirelo.main(["preflight", "--video", str(video), "--prompt", "two bounces", "--out", str(out)]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["next"].startswith("Optional paid generation command: ")
+    assert not any(word in data["next"].lower() for word in ("ask", "wait", "approv"))
+    cmd = shlex.split(data["next"].split(": ", 1)[1])
+    assert cmd[2] == "generate"
+    assert cmd[cmd.index("--prompt") + 1] == "two bounces"
+    assert cmd[cmd.index("--out") + 1] == str(out)
 
 
 @pytest.mark.parametrize("source_change", ["replaced", "removed"])

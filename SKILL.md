@@ -1,6 +1,6 @@
 ---
 name: mirelo-sfx
-description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. ALWAYS run the free quote first: `python3 ~/mirelo-sfx-openclaw/mirelo.py preflight --video <video.mp4> --prompt \"<sound description>\"`. Tell the user the quoted_credits and ASK before running the paid `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <same video> --prompt \"<same prompt>\" --out <out from preflight>`. Demo clip: ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask. Offer nothing beyond this skill. Read this SKILL.md before use."
+description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. For an explicit generation or refinement request, run `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <video.mp4> --prompt \"<sound description>\"` immediately within the 80-credit cap; it uploads, quotes, checks affordability and submits one variant. A cost-only request uses preflight and must never generate. Demo clip: ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask or state the chosen prompt. Offer nothing beyond this skill. Read this SKILL.md before use."
 ---
 
 # Mirelo SFX
@@ -13,14 +13,21 @@ never guess output you did not see.
 
 ## Rules
 
-- **Preflight first, every time.** `preflight` is free: it uploads the video
-  and returns `quoted_credits`. `generate` spends credits. Never run `generate`
-  until you have shown the user the quote and they said yes.
-- Quote the exact video and sound description you intend to generate. If either
-  changes, run a fresh `preflight` and ask for approval of that quote. A quote
-  without `--prompt` also needs a fresh preflight with the chosen description.
+- An explicit request to generate sound or refine an existing result authorizes
+  the paid generation within the 80-credit cap. Run `generate` immediately;
+  it uploads, quotes, checks the cap and affordability, then submits one variant.
+  Do not add a separate cost-approval step.
+- For a cost-only request, run `preflight` and report `quoted_credits` and
+  `estimated_ms`. It uploads and quotes without generating; never follow a
+  cost-only request with `generate`.
+- A saved quote is bound to its video and sound description. If either changes,
+  run a fresh `preflight` with the intended inputs, then continue `generate`
+  for an explicit generation request. A promptless quote also needs a fresh
+  preflight with the chosen description. Do not pause for cost approval.
   The run keeps a local snapshot of the uploaded video and optional sync sidecar;
   do not edit those saved files.
+- Refine only when the user requests it, using a new `--out` folder. Never
+  generate extra variants or automatically iterate on a result.
 - **Report the JSON exactly.** Copy `sync.detected_onsets_s`, `sync.ok`,
   credits and job ids as printed. Never round them, and never report the
   `expected_impacts_s` times as detected sounds. `estimated_ms` is Mirelo's
@@ -56,34 +63,27 @@ omitted. Do not invent missing sync fields; watch and listen to assess alignment
 
 ## Workflow
 
-1. Quote (free). The JSON includes `quoted_credits`, `out`, and a ready-made
-   `next` command:
-
-   ```bash
-   python3 ~/mirelo-sfx-openclaw/mirelo.py preflight \
-     --video ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 \
-     --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
-   ```
-
-2. Tell the user: "This will cost N credits (cap 80), estimated time about
-   X s. Go ahead?" Stop and wait.
-
-3. Only after a yes, run the paid step with the same video and prompt and the
-   `out` from step 1:
+1. For a generation request, run one command. Its JSON includes the quote,
+   charged credits, status and output paths:
 
    ```bash
    python3 ~/mirelo-sfx-openclaw/mirelo.py generate \
      --video ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 \
-     --prompt "<same prompt>" --out <out from step 1>
+     --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
    ```
 
-4. If the status is `poll_timeout`:
+2. If the status is `poll_timeout`:
 
    ```bash
    python3 ~/mirelo-sfx-openclaw/mirelo.py resume --out <out>
    ```
 
-5. For a refinement, run steps 1-3 again with the refined prompt (a new `out`).
+3. For a requested refinement, run `generate` with the refined prompt and a
+   new `--out` folder. Each requested refinement is one paid job.
+
+For a cost-only request, use `preflight` with the video and intended prompt.
+Report the quote and stop; the optional paid command in `next` is not
+permission to generate.
 
 ## What to report
 

@@ -28,23 +28,24 @@ paid audio-generation test.
    that follow the video.”
 2. If demonstrating the validated fallback, switch to the ball clip and play
    its prepared before/after result with headphones. Label it as the ball example.
-3. If there is time and an approved credit budget, ask the agent:
+3. If there is time for one live generation within the 80-credit cap, ask the agent:
 
    > Add sound effects to ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 with this
-   > prompt: "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." Tell me the quoted cost first and wait
-   > for approval. Report sync onsets exactly as the JSON shows them.
+   > prompt: "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." Report the cost and
+   > sync onsets exactly as the JSON shows them.
 
-4. Read the actual quote, approve it, and let the agent generate. Compare the
+4. The agent generates directly, checking the quote and cap internally. Compare the
    result with the silent launch clip. Listen for the rumble and lift-off swell.
    The launch has no impact-timing sidecar: timing is not automatically checked
    and `sync.ok` is omitted. Watch and listen to assess alignment. Report
    detected onsets and any sync fields exactly as printed; `estimated_ms` is an estimate, not elapsed time.
 
 For direct CLI use, follow the [README commands](../README.md#try-the-artemis-i-liftoff-clip).
-If polling times out, run `python3 mirelo.py resume --out <OUT_FROM_PREFLIGHT>`.
+If polling times out, run `python3 mirelo.py resume --out <OUT_FROM_JSON>`.
 If the network stalls or the live sound design is weak, return to the prepared ball
-player. Every refinement is a new quote and paid job; avoid an open-ended
-refinement loop during a presentation.
+player. Each explicitly requested refinement is a new quote and paid job. Do not
+automatically iterate during a presentation. For a cost-only request, use
+`preflight`, report the quote and stop without generating.
 
 ## What has been tested
 
