@@ -7,6 +7,7 @@ Stdlib only; needs Python 3.12+ and ffmpeg/ffprobe on PATH.
 
 import argparse
 import array
+import hashlib
 import html
 import json
 import math
@@ -42,6 +43,7 @@ CREATE_WAIT_S = 25
 HTTP_TIMEOUT_S = 60
 POLL_INTERVAL_S = 5
 POLL_TIMEOUT_S = 300
+IDEMPOTENCY_RETENTION_S = 24 * 60 * 60
 DEFAULT_MAX_CREDITS = 80
 DEFAULT_CREDENTIALS = Path.home() / ".config" / "mirelo" / "credentials"
 
@@ -241,10 +243,18 @@ class Client:
                           and (rec.get("credit_shortfall") or 0) == 0)
         return {"credits": int(data["credits"]), "estimated_ms": data.get("estimated_ms"), "affordable": affordable}
 
-    def create_job(self, asset_id: str, prompt: str | None, idempotency_key: str, duration_ms: int) -> dict:
+    def create_job(self, asset_id: str, prompt: str | None, idempotency_key: str, duration_ms: int,
+                   request_body: str | None = None) -> dict:
         status, body = self._call("POST", f"{PATHS['create']}?wait={CREATE_WAIT_S}",
+                                  request_body.encode() if request_body is not None else
                                   generation_body(asset_id, prompt, duration_ms), {"Idempotency-Key": idempotency_key})
-        return parse_job(self._json(status, body, (200, 202)))
+        try:
+            job = parse_job(self._json(status, body, (200, 202)))
+        except (ValueError, TypeError, AttributeError):
+            raise MireloError(0, "invalid generation response; submission may have been accepted") from None
+        if not job["id"] or not job["status"]:
+            raise MireloError(0, "generation response is missing job id or status; submission may have been accepted")
+        return job
 
     def get_job(self, job_id: str) -> dict:
         return parse_job(self._json(*self._call("GET", PATHS["job"].format(id=job_id)), (200,)))
@@ -365,6 +375,26 @@ def check_quote(quote: dict, max_credits: int) -> None:
         raise CreditCapError(f"quote {quote['credits']} credits exceeds the {max_credits}-credit cap per job")
 
 
+def file_digest(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def saved_video(state: dict) -> Path:
+    """Use the exact uploaded bytes, even if the user's original was moved or replaced."""
+    if not state.get("snapshot") or not state.get("snapshot_sha256"):
+        raise UsageError("this run has no saved video snapshot; use a new --out for a fresh preflight")
+    video = Path(state["snapshot"])
+    if not video.is_file() or file_digest(video) != state["snapshot_sha256"]:
+        raise UsageError("saved video snapshot is missing or changed; restore the original snapshot before retrying")
+    sidecar = video.with_suffix(".json")
+    expected = state.get("sidecar_sha256")
+    if (expected is None and sidecar.exists()) or (expected is not None and
+            (not sidecar.is_file() or file_digest(sidecar) != expected)):
+        raise UsageError("saved sync sidecar is missing or changed; restore it before retrying")
+    return video
+
+
 def preflight(video: Path, out: Path, client, prompt: str | None = None, max_credits: int = DEFAULT_MAX_CREDITS,
               probe: Callable[[Path], float] = duration_s) -> dict:
     video = video.resolve()
@@ -373,11 +403,32 @@ def preflight(video: Path, out: Path, client, prompt: str | None = None, max_cre
         raise UsageError(f"job {state['job_id']} was already submitted in {out}; use resume or a new --out")
     if state and state.get("status") == "submitting":
         raise UsageError(f"a submission is pending in {out}; re-run generate with the same video and prompt")
-    duration_ms = duration_ms_for(probe(video))
-    asset_id = client.upload(video)
-    quote = client.quote(asset_id, duration_ms, prompt)
-    check_quote(quote, max_credits)
+    out.mkdir(parents=True, exist_ok=True)
+    # Stage separately so a failed re-quote never overwrites the last approved snapshot.
+    with tempfile.TemporaryDirectory(prefix=".preflight-", dir=out) as staging:
+        snapshot = Path(staging) / ("source" + video.suffix)
+        shutil.copyfile(video, snapshot)
+        sidecar = video.with_suffix(".json")
+        staged_sidecar = snapshot.with_suffix(".json")
+        if sidecar.is_file():
+            shutil.copyfile(sidecar, staged_sidecar)
+        snapshot_sha256 = file_digest(snapshot)
+        sidecar_sha256 = file_digest(staged_sidecar) if staged_sidecar.is_file() else None
+        duration_ms = duration_ms_for(probe(snapshot))
+        asset_id = client.upload(snapshot)
+        quote = client.quote(asset_id, duration_ms, prompt)
+        check_quote(quote, max_credits)
+        saved = out.resolve() / snapshot.name
+        os.replace(snapshot, saved)
+        saved.chmod(0o400)
+        if sidecar_sha256 is not None:
+            os.replace(staged_sidecar, saved.with_suffix(".json"))
+            saved.with_suffix(".json").chmod(0o400)
+        else:
+            saved.with_suffix(".json").unlink(missing_ok=True)
     state = {"idempotency_key": str(uuid.uuid4()), "video": str(video), "prompt": prompt or "",
+             "snapshot": str(saved), "snapshot_sha256": snapshot_sha256, "sidecar_sha256": sidecar_sha256,
+             "request_body": generation_body(asset_id, prompt, duration_ms).decode(),
              "asset_id": asset_id, "duration_ms": duration_ms, "job_id": None, "status": "quoted",
              "quoted_credits": quote["credits"], "charged_credits": None, "message": None}
     save_state(out, state)
@@ -396,27 +447,39 @@ def generate(video: Path, prompt: str, out: Path, client, max_credits: int = DEF
         if state["prompt"] != prompt or state["video"] != str(video):
             raise UsageError("a submission may already exist in this --out; re-run generate with the same "
                              "video and prompt so the idempotency key recovers it")
-    elif not (state and state.get("status") == "quoted" and state.get("video") == str(video)):
+        submitted_at = state.get("submitted_at")
+        if not isinstance(submitted_at, (int, float)) or not 0 <= time.time() - submitted_at < IDEMPOTENCY_RETENTION_S:
+            raise UsageError("pending submission has an expired or unknown 24-hour idempotency window; "
+                             "reconcile the original job with Mirelo before any new paid submission")
+    elif state and state.get("status") == "quoted":
+        if state["prompt"] != prompt or state["video"] != str(video):
+            raise UsageError("video or prompt differs from the saved quote; run a fresh preflight with the "
+                             "intended video and prompt, then approve that quote before generate")
+    else:
         preflight(video, out, client, prompt, max_credits, probe)
         state = load_state(out)
     if state["quoted_credits"] > max_credits:
         raise CreditCapError(f"quote {state['quoted_credits']} credits exceeds the {max_credits}-credit cap per job")
 
-    state.update(prompt=prompt, status="submitting", message=None)
+    snapshot = saved_video(state)
+    submitted_at = state["submitted_at"] if state["status"] == "submitting" else time.time()
+    state.update(status="submitting", message=None, submitted_at=submitted_at)
     save_state(out, state)
     try:
-        job = client.create_job(state["asset_id"], prompt, state["idempotency_key"], state["duration_ms"])
+        job = client.create_job(state["asset_id"], state["prompt"], state["idempotency_key"],
+                                state["duration_ms"], state["request_body"])
     except MireloError as e:
-        if isinstance(e, UploadRejected):
+        if isinstance(e, UploadRejected) and 400 <= e.status < 500:
             state["status"] = "rejected"
-        elif e.status != 0:
+        elif e.status == 402:
             state["status"] = "quoted"
-        state["message"] = str(e) if e.status else f"{e}; re-run the same generate command to recover safely"
+        state["message"] = (f"{e}; re-run the same generate command to recover safely"
+                            if state["status"] == "submitting" else str(e))
         save_state(out, state)
         raise
     state.update(job_id=job["id"], status=job["status"])
     save_state(out, state)
-    return _poll_and_finish(state, job, video, out, client, poll_timeout, sleep, clock, finish)
+    return _poll_and_finish(state, job, snapshot, out, client, poll_timeout, sleep, clock, finish)
 
 
 def resume(out: Path, client, poll_timeout: float = POLL_TIMEOUT_S, sleep: Callable[[float], None] = time.sleep,
@@ -427,9 +490,10 @@ def resume(out: Path, client, poll_timeout: float = POLL_TIMEOUT_S, sleep: Calla
     if not state.get("job_id"):
         raise UsageError(f"no job was submitted from {out}; nothing to resume")
     if state["status"] == "done":
-        return result(state, out, files=_files(out))
+        return result(state, out, files=_files(out), sync=state.get("sync"))
+    video = saved_video(state)
     job = client.get_job(state["job_id"])
-    return _poll_and_finish(state, job, Path(state["video"]), out, client, poll_timeout, sleep, clock, finish)
+    return _poll_and_finish(state, job, video, out, client, poll_timeout, sleep, clock, finish)
 
 
 def _files(out: Path) -> dict:
@@ -472,8 +536,8 @@ def _poll_and_finish(state: dict, job: dict, video: Path, out: Path, client, pol
             raise
         client.download(fresh["download_url"], sound)
 
-    sync = finish(video, out, state)
-    state.update(status="done", message=None)
+    sync = finish(saved_video(state), out, state)
+    state.update(status="done", message=None, sync=sync)
     save_state(out, state)
     return result(state, out, files=_files(out), sync=sync)
 
@@ -542,12 +606,14 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "preflight":
             video = _video(args.video)
             data = preflight(video, out, Client(load_api_key()[0]), args.prompt, args.max_credits)
-            gen = ["python3", str(Path(__file__).resolve()), "generate", "--video", str(video.resolve()),
+            gen = ["python3", str(Path(__file__).resolve()), "generate" if args.prompt else "preflight",
+                   "--video", str(video.resolve()),
                    "--prompt", args.prompt or "<describe the sound>", "--out", str(out)]
-            data["next"] = ("Tell the user the quoted credits and ask before running (PAID): "
+            data["next"] = (("Tell the user the quoted credits and ask before running (PAID): " if args.prompt else
+                             "Choose a sound description, then get a fresh free quote before approval: ")
                             + shlex.join(gen))
         else:
-            video = _video(args.video)
+            video = Path(args.video).expanduser()
             data = generate(video, args.prompt, out, Client(load_api_key()[0]), args.max_credits)
         print(scrub(json.dumps(data, indent=2)))
         return 0

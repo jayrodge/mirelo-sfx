@@ -14,8 +14,28 @@ for tool in ffmpeg ffprobe; do
 done
 
 mkdir -p "$DEST"
-escaped="${REPO//&/\\&}"
-sed "s#~/mirelo-sfx-openclaw#${escaped//#/\\#}#g" "$REPO/SKILL.md" > "$DEST/SKILL.md.tmp"
+python3 - "$REPO" "$DEST/SKILL.md.tmp" <<'PY'
+import json
+import shlex
+import sys
+from pathlib import Path
+
+repo, dest = Path(sys.argv[1]), Path(sys.argv[2])
+text = (repo / "SKILL.md").read_text()
+lines = text.splitlines()
+description = json.loads(lines[2].removeprefix("description: "))
+replacements = {
+    "~/mirelo-sfx-openclaw/mirelo.py": shlex.quote(str(repo / "mirelo.py")),
+    "~/mirelo-sfx-openclaw/examples/silent.mp4": shlex.quote(str(repo / "examples" / "silent.mp4")),
+}
+lines[2] = "description: PLACEHOLDER"
+body = "\n".join(lines)
+for source, quoted in replacements.items():
+    description = description.replace(source, quoted)
+    body = body.replace(source, quoted)
+body = body.replace("description: PLACEHOLDER", "description: " + json.dumps(description), 1)
+dest.write_text(body + "\n")
+PY
 mv "$DEST/SKILL.md.tmp" "$DEST/SKILL.md"
 chmod +x "$REPO/mirelo.py"
 
@@ -23,4 +43,8 @@ echo "skill: $DEST/SKILL.md (uses $REPO/mirelo.py)"
 if [ -z "${MIRELO_API_KEY:-}" ] && [ ! -f "$REPO/.env" ] && [ ! -f "$HOME/.config/mirelo/credentials" ]; then
     echo "next: cp .env.example .env && chmod 600 .env, then add your key"
 fi
-echo "check: python3 $REPO/mirelo.py doctor"
+python3 - "$REPO/mirelo.py" <<'PY'
+import shlex
+import sys
+print("check: " + shlex.join(["python3", sys.argv[1], "doctor"]))
+PY

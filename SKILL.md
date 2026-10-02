@@ -16,6 +16,11 @@ never guess output you did not see.
 - **Preflight first, every time.** `preflight` is free: it uploads the video
   and returns `quoted_credits`. `generate` spends credits. Never run `generate`
   until you have shown the user the quote and they said yes.
+- Quote the exact video and sound description you intend to generate. If either
+  changes, run a fresh `preflight` and ask for approval of that quote. A quote
+  without `--prompt` also needs a fresh preflight with the chosen description.
+  The run keeps a local snapshot of the uploaded video and optional sync sidecar;
+  do not edit those saved files.
 - **Report the JSON exactly.** Copy `sync.detected_onsets_s`, `sync.ok`,
   credits and job ids as printed. Never round them, and never report the
   `expected_impacts_s` times as detected sounds. `estimated_ms` is Mirelo's
@@ -35,9 +40,12 @@ never guess output you did not see.
 - One `--out` folder per generation. If `generate` returns
   `"status": "poll_timeout"`, run `resume` for that folder. Never run
   `generate` again for it; that could pay twice.
-- If `generate` fails with a network error before a `job_id` was saved,
+- If `generate` fails with a network or server error before a `job_id` was saved,
   re-run the exact same `generate` command. The saved idempotency key makes
-  that safe.
+  that safe. Do not run `preflight` or change the prompt for a pending submission.
+  Mirelo remembers the key for 24 hours. If the tool refuses recovery because
+  that window expired or is unknown, stop and reconcile the original job with
+  Mirelo; do not create another run to bypass the guard.
 
 ## Workflow
 

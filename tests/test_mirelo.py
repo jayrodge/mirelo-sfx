@@ -1,7 +1,10 @@
 import json
 import math
+import os
+import shlex
 import shutil
 import struct
+import subprocess
 import sys
 import wave
 from pathlib import Path
@@ -89,10 +92,10 @@ def run(tmp_path):
             return mirelo.preflight(video, out, client, probe=lambda p: 8.0, **kw)
         if cmd == "generate":
             return mirelo.generate(video, kw.pop("prompt", "two bounces"), out, client, sleep=clock.sleep,
-                                   clock=clock, probe=lambda p: 8.0, finish=no_finish, **kw)
-        return mirelo.resume(out, client, sleep=clock.sleep, clock=clock, finish=no_finish)
+                                   clock=clock, probe=lambda p: 8.0, finish=kw.pop("finish", no_finish), **kw)
+        return mirelo.resume(out, client, sleep=clock.sleep, clock=clock, finish=kw.pop("finish", no_finish), **kw)
 
-    _run.out, _run.clock = out, clock
+    _run.out, _run.clock, _run.video = out, clock, video
     return _run
 
 
@@ -178,7 +181,7 @@ def test_cap_override_allows_larger_quote(run):
 
 
 def test_saved_quote_is_rechecked_against_cap_at_generate(run):
-    run("preflight", FakeHTTP(credits=120), max_credits=200)
+    run("preflight", FakeHTTP(credits=120), prompt="two bounces", max_credits=200)
     http = FakeHTTP(credits=120)
     with pytest.raises(mirelo.CreditCapError):
         run("generate", http)
@@ -227,10 +230,214 @@ def test_network_drop_on_create_retries_with_same_key_only_for_same_prompt(run):
         run("generate", drop)
     with pytest.raises(mirelo.UsageError, match="same"):
         run("generate", drop, prompt="different")
+    with pytest.raises(mirelo.UsageError, match="pending"):
+        run("preflight", drop)
     http.create = (200, job_body("succeeded", url="https://dl/a.wav", credits=80))
     assert run("generate", drop)["status"] == "done"
     keys = {r[2]["Idempotency-Key"] for r in http.requests if "/generations?wait" in r[1]}
     assert len(keys) == 1
+    assert len({r[3] for r in http.requests if "/generations?wait" in r[1]}) == 1
+
+
+@pytest.mark.parametrize("status", [400, 401, 429, 500, 502, 503, 504])
+def test_ambiguous_create_error_blocks_requote_and_reuses_exact_request(run, status, monkeypatch):
+    http = FakeHTTP(create=(status, {"error": {"code": "unknown", "message": "try later"}}))
+    with pytest.raises(mirelo.MireloError):
+        run("generate", http)
+    state = mirelo.load_state(run.out)
+    assert state["status"] == "submitting" and state["job_id"] is None
+    count = len(http.requests)
+    with pytest.raises(mirelo.UsageError, match="pending"):
+        run("preflight", http, prompt="changed")
+    with pytest.raises(mirelo.UsageError, match="same"):
+        run("generate", http, prompt="changed")
+    assert len(http.requests) == count
+    # The saved request must survive even a later script model default change.
+    monkeypatch.setattr(mirelo, "MODEL", "future-default")
+    http.create = (200, job_body("succeeded", url="https://dl/a.wav", credits=80))
+    assert run("generate", http)["status"] == "done"
+    creates = [r for r in http.requests if "/generations?wait" in r[1]]
+    assert len(creates) == 2
+    assert creates[0][2]["Idempotency-Key"] == creates[1][2]["Idempotency-Key"] == state["idempotency_key"]
+    assert creates[0][3] == creates[1][3] == state["request_body"].encode()
+
+
+@pytest.mark.parametrize("response", [{}, {"id": "gen_1"}, None])
+def test_malformed_create_success_keeps_submission_guard(run, response):
+    http = FakeHTTP(create=(200, response))
+    with pytest.raises(mirelo.MireloError, match="submission may have been accepted"):
+        run("generate", http)
+    assert mirelo.load_state(run.out)["status"] == "submitting"
+    count = len(http.requests)
+    with pytest.raises(mirelo.UsageError, match="pending"):
+        run("preflight", http)
+    assert len(http.requests) == count
+
+
+@pytest.mark.parametrize("age", [24 * 60 * 60, 25 * 60 * 60, None])
+def test_expired_or_legacy_submission_refuses_retry_and_requote(run, age, monkeypatch):
+    now = 1_000_000.0
+    monkeypatch.setattr(mirelo.time, "time", lambda: now)
+    http = FakeHTTP(create=(503, {"error": {"message": "try later"}}))
+    with pytest.raises(mirelo.MireloError):
+        run("generate", http)
+    state = mirelo.load_state(run.out)
+    assert state["submitted_at"] == now
+    if age is None:
+        state.pop("submitted_at")
+        mirelo.save_state(run.out, state)
+    else:
+        monkeypatch.setattr(mirelo.time, "time", lambda: now + age)
+    count = len(http.requests)
+    with pytest.raises(mirelo.UsageError, match="24-hour.*reconcile"):
+        run("generate", http)
+    with pytest.raises(mirelo.UsageError, match="pending"):
+        run("preflight", http)
+    assert len(http.requests) == count and mirelo.load_state(run.out) == state
+
+
+def test_immediate_submission_retry_keeps_first_epoch_key_and_body(run, monkeypatch):
+    now = 1_000_000.0
+    monkeypatch.setattr(mirelo.time, "time", lambda: now)
+    http = FakeHTTP(create=(503, {"error": {"message": "try later"}}))
+    with pytest.raises(mirelo.MireloError):
+        run("generate", http)
+    initial = mirelo.load_state(run.out)
+    monkeypatch.setattr(mirelo.time, "time", lambda: now + 1)
+    http.create = (200, job_body("succeeded", url="https://dl/a.wav", credits=80))
+    assert run("generate", http)["status"] == "done"
+    saved = mirelo.load_state(run.out)
+    assert saved["submitted_at"] == initial["submitted_at"] == now
+    creates = [r for r in http.requests if "/generations?wait" in r[1]]
+    assert creates[0][2]["Idempotency-Key"] == creates[1][2]["Idempotency-Key"]
+    assert creates[0][3] == creates[1][3]
+
+
+@pytest.mark.parametrize("initial_prompt", [None, "original prompt"])
+def test_prompt_change_requires_fresh_quote_and_approval(run, initial_prompt):
+    http = FakeHTTP(create=(200, job_body("succeeded", url="https://dl/a.wav", credits=80)))
+    run("preflight", http, prompt=initial_prompt)
+    initial = mirelo.load_state(run.out)
+    count = len(http.requests)
+    with pytest.raises(mirelo.UsageError, match="fresh preflight.*approve"):
+        run("generate", http, prompt="new prompt")
+    assert len(http.requests) == count and mirelo.load_state(run.out) == initial
+    run("preflight", http, prompt="new prompt")
+    assert mirelo.load_state(run.out)["idempotency_key"] != initial["idempotency_key"]
+    assert run("generate", http, prompt="new prompt")["status"] == "done"
+    quote = [r for r in http.requests if r[1].endswith("/preflight")][-1]
+    create = next(r for r in http.requests if "/generations?wait" in r[1])
+    assert quote[3] == create[3]
+
+
+def test_promptless_cli_quote_next_command_requotes(tmp_path, monkeypatch, capsys):
+    video = tmp_path / "silent.mp4"
+    video.write_bytes(b"video")
+    monkeypatch.setattr(mirelo, "load_api_key", lambda: (KEY, "test"))
+    monkeypatch.setattr(mirelo, "preflight", lambda *args: {"quoted_credits": 80})
+    assert mirelo.main(["preflight", "--video", str(video), "--out", str(tmp_path / "out")]) == 0
+    data = json.loads(capsys.readouterr().out)
+    cmd = shlex.split(data["next"].split(": ", 1)[1])
+    assert cmd[2] == "preflight" and cmd[cmd.index("--prompt") + 1] == "<describe the sound>"
+
+
+@pytest.mark.parametrize("source_change", ["replaced", "removed"])
+def test_generate_uses_uploaded_snapshot_when_original_changes(run, source_change):
+    sidecar = run.video.with_suffix(".json")
+    sidecar.write_text('{"impacts":[2.0,5.0]}')
+    http = FakeHTTP(create=(200, job_body("succeeded", url="https://dl/a.wav", credits=80)))
+    run("preflight", http, prompt="two bounces")
+    state = mirelo.load_state(run.out)
+    snapshot = Path(state["snapshot"])
+    assert snapshot.read_bytes() == b"video" and state["snapshot_sha256"] == mirelo.file_digest(snapshot)
+    upload = next(r for r in http.requests if r[1] == "https://storage/up")
+    assert b"video" in upload[3]
+    if source_change == "replaced":
+        run.video.write_bytes(b"replacement video")
+        sidecar.write_text('{"impacts":[99]}')
+    else:
+        run.video.unlink()
+        sidecar.unlink()
+
+    def verify(video, out, saved):
+        assert video == snapshot and video.read_bytes() == b"video"
+        assert json.loads(video.with_suffix(".json").read_text()) == {"impacts": [2.0, 5.0]}
+        return {"detected_onsets_s": [2.0, 5.0], "expected_impacts_s": [2.0, 5.0], "ok": True}
+
+    res = run("generate", http, finish=verify)
+    assert res["status"] == "done"
+    count = len(http.requests)
+    assert run("resume", http)["sync"] == res["sync"] == mirelo.load_state(run.out)["sync"]
+    assert len(http.requests) == count
+
+
+def test_resume_uses_snapshot_after_original_is_removed(run):
+    http = FakeHTTP()
+    assert run("generate", http)["status"] == "poll_timeout"
+    run.video.unlink()
+    http.polls = [job_body("succeeded", url="https://dl/a.wav", credits=80)]
+
+    def verify(video, out, state):
+        assert video == Path(state["snapshot"]) and video.read_bytes() == b"video"
+        return {"detected_onsets_s": []}
+
+    assert run("resume", http, finish=verify)["status"] == "done"
+
+
+@pytest.mark.parametrize("target", ["video", "sidecar"])
+def test_mutated_snapshot_blocks_pending_retry_without_remote_request(run, target):
+    run.video.with_suffix(".json").write_text('{"impacts":[2.0]}')
+    http = FakeHTTP(create=(503, {"error": {"message": "unavailable"}}))
+    with pytest.raises(mirelo.MireloError):
+        run("generate", http)
+    state = mirelo.load_state(run.out)
+    saved = Path(state["snapshot"])
+    target_path = saved if target == "video" else saved.with_suffix(".json")
+    target_path.chmod(0o600)
+    target_path.write_bytes(b"changed")
+    count = len(http.requests)
+    with pytest.raises(mirelo.UsageError, match="saved.*changed"):
+        run("generate", http)
+    assert len(http.requests) == count and mirelo.load_state(run.out) == state
+
+
+def test_failed_requote_preserves_prior_snapshot_and_quote(run):
+    run("preflight", FakeHTTP(), prompt="two bounces")
+    original = mirelo.load_state(run.out)
+    run.video.write_bytes(b"replacement")
+    with pytest.raises(mirelo.CreditCapError):
+        run("preflight", FakeHTTP(credits=81), prompt="changed")
+    assert mirelo.load_state(run.out) == original
+    assert mirelo.saved_video(original).read_bytes() == b"video"
+
+
+def test_installer_quotes_complete_paths_and_keeps_yaml_description_valid(tmp_path):
+    clone = tmp_path / "clone with spaces 'single\"double"
+    clone.mkdir()
+    for filename in ("setup.sh", "SKILL.md", "mirelo.py"):
+        shutil.copyfile(REPO / filename, clone / filename)
+    skills = tmp_path / "isolated skills"
+    env = {**os.environ, "OPENCLAW_SKILLS_DIR": str(skills)}
+    output = subprocess.run(["bash", str(clone / "setup.sh")], env=env, text=True,
+                            capture_output=True, check=True).stdout
+    installed = (skills / "mirelo-sfx" / "SKILL.md").read_text()
+    # JSON strings are valid YAML quoted scalars; decode the actual generated field.
+    description = json.loads(installed.splitlines()[2].removeprefix("description: "))
+    doctor = shlex.split(next(line.removeprefix("check: ") for line in output.splitlines()
+                             if line.startswith("check: ")))
+    assert doctor == ["python3", str(clone / "mirelo.py"), "doctor"]
+    advertised = description.split("The only tool is `", 1)[1].split("`", 1)[0]
+    assert shlex.split(advertised) == ["python3", str(clone / "mirelo.py")]
+    for block in installed.split("```bash\n")[1:]:
+        command = block.split("```", 1)[0].replace("\\\n", " ")
+        args = shlex.split(command)
+        assert args[0:2] == ["python3", str(clone / "mirelo.py")]
+        if "--video" in args:
+            assert args[args.index("--video") + 1] == str(clone / "examples" / "silent.mp4")
+    # Execute the advertised program with a local-only --help command through Bash.
+    smoke = subprocess.run(["bash", "-c", shlex.join(doctor[:2] + ["--help"])], text=True,
+                           capture_output=True, check=True)
+    assert "doctor,preflight,generate,resume" in smoke.stdout
 
 
 # ---- status parsing
@@ -320,3 +527,4 @@ def test_generate_muxes_outputs_and_checks_sync(tmp_path):
     assert kinds == ["audio", "video"]
     assert "gen_1" in (out / "player.html").read_text()
     assert KEY not in (out / "job.json").read_text()
+    assert mirelo.resume(out, mirelo.Client(KEY, http))["sync"] == res["sync"]
