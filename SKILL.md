@@ -1,6 +1,6 @@
 ---
 name: mirelo-sfx
-description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. ALWAYS run the free quote first: `python3 ~/mirelo-sfx-openclaw/mirelo.py preflight --video <video.mp4> --prompt \"<sound description>\"`. Tell the user the quoted_credits and ASK before running the paid `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <same video> --prompt \"<same prompt>\" --out <out from preflight>`. Demo clip: ~/mirelo-sfx-openclaw/examples/silent.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask. Offer nothing beyond this skill. Read this SKILL.md before use."
+description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. ALWAYS run the free quote first: `python3 ~/mirelo-sfx-openclaw/mirelo.py preflight --video <video.mp4> --prompt \"<sound description>\"`. Tell the user the quoted_credits and ASK before running the paid `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <same video> --prompt \"<same prompt>\" --out <out from preflight>`. Demo clip: ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask. Offer nothing beyond this skill. Read this SKILL.md before use."
 ---
 
 # Mirelo SFX
@@ -47,6 +47,13 @@ never guess output you did not see.
   that window expired or is unknown, stop and reconcile the original job with
   Mirelo; do not create another run to bypass the guard.
 
+The default example is a silent Artemis I liftoff clip (NASA/Sam Lott). Generated
+audio is Mirelo sound design, not the original NASA recording. See
+`examples/README.md` in the clone for source credit. The ball clip
+`examples/silent.mp4` remains a sync test fixture. The Artemis clip has no
+impact-timing sidecar: timing is not automatically checked and `sync.ok` is
+omitted. Do not invent missing sync fields; watch and listen to assess alignment.
+
 ## Workflow
 
 1. Quote (free). The JSON includes `quoted_credits`, `out`, and a ready-made
@@ -54,8 +61,8 @@ never guess output you did not see.
 
    ```bash
    python3 ~/mirelo-sfx-openclaw/mirelo.py preflight \
-     --video ~/mirelo-sfx-openclaw/examples/silent.mp4 \
-     --prompt "Two soft rubber-ball impacts matching the bounces, quiet room ambience"
+     --video ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 \
+     --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
    ```
 
 2. Tell the user: "This will cost N credits (cap 80), estimated time about
@@ -66,7 +73,7 @@ never guess output you did not see.
 
    ```bash
    python3 ~/mirelo-sfx-openclaw/mirelo.py generate \
-     --video ~/mirelo-sfx-openclaw/examples/silent.mp4 \
+     --video ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 \
      --prompt "<same prompt>" --out <out from step 1>
    ```
 
@@ -82,6 +89,6 @@ never guess output you did not see.
 
 When `status` is `done`: the paths in `files` (`silent`, `sound`,
 `with_sound`, `player`), the `job_id`, `quoted_credits` and `charged_credits`,
-and `sync`: `ok`, the `detected_onsets_s` exactly as printed, and the
-`expected_impacts_s` labeled as expected. For any other status, report `status` and
+and `sync`: the `detected_onsets_s` exactly as printed, plus `ok` and
+`expected_impacts_s` only when present (label the latter as expected). For any other status, report `status` and
 `message` and the next command these rules allow.

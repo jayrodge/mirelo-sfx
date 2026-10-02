@@ -34,14 +34,20 @@ python3 mirelo.py doctor
 audio. `setup.sh` installs the skill in `~/.openclaw/skills/mirelo-sfx` and points
 it at this clone. Keep the clone in place; rerun setup if you move it.
 
-## Try the 8-second clip
+## Try the Artemis I liftoff clip
+
+The default is an eight-second silent Artemis I launch clip, credited to
+NASA/Sam Lott. See [source and clip details](examples/README.md). Mirelo
+generates a new sound design; it is not the original NASA recording.
+
+[![Artemis I liftoff](examples/artemis-liftoff.jpg)](examples/artemis-liftoff.mp4)
 
 First upload the clip and get a free credit quote:
 
 ```bash
 python3 mirelo.py preflight \
-  --video examples/silent.mp4 \
-  --prompt "Add two soft rubber-ball impacts matching the visible bounces. Include a quiet room ambience."
+  --video examples/artemis-liftoff.mp4 \
+  --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions."
 ```
 
 Read `quoted_credits` and `out` in the JSON. After accepting the cost, run the
@@ -49,8 +55,8 @@ paid command using the **same video, prompt, and output folder**:
 
 ```bash
 python3 mirelo.py generate \
-  --video examples/silent.mp4 \
-  --prompt "Add two soft rubber-ball impacts matching the visible bounces. Include a quiet room ambience." \
+  --video examples/artemis-liftoff.mp4 \
+  --prompt "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." \
   --out <OUT_FROM_PREFLIGHT>
 ```
 
@@ -59,9 +65,8 @@ Open `player.html` from that folder in a browser. Each completed run contains
 
 Or ask your existing OpenClaw agent:
 
-> Add sound effects to ~/mirelo-sfx-openclaw/examples/silent.mp4 with this prompt:
-> "Add two soft rubber-ball impacts matching the visible bounces. Include a quiet
-> room ambience." Tell me the quoted cost first and wait for approval. Report
+> Add sound effects to ~/mirelo-sfx-openclaw/examples/artemis-liftoff.mp4 with this prompt:
+> "Deep rocket-engine rumble builds with the bright exhaust plume, swelling into a powerful sustained roar as the rocket lifts off. No speech, countdown, music, or extra explosions." Tell me the quoted cost first and wait for approval. Report
 > sync onsets exactly as the JSON shows them.
 
 Approve the quoted cost in a second message to generate. See the
@@ -91,7 +96,9 @@ Approve the quoted cost in a second message to generate. See the
 
 ## Validation
 
-On September 30, 2026, four agent-driven jobs succeeded at 80 credits each
+The Artemis clip has not yet had a paid audio-generation test. The included
+`examples/silent.mp4` and `silent.json` remain the bouncing-ball sync fixture.
+On September 30, 2026, four agent-driven jobs on that ball clip succeeded at 80 credits each
 (320 total). Generation turns took about 20–30 seconds. Two outputs passed
 the clip's signal-based sync check; two failed. Jay approved run 1 after headphone playback on October 2, 2026.
 Validation on the actual event image and presentation setup remains pending,

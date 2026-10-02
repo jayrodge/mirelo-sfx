@@ -433,7 +433,7 @@ def test_installer_quotes_complete_paths_and_keeps_yaml_description_valid(tmp_pa
         args = shlex.split(command)
         assert args[0:2] == ["python3", str(clone / "mirelo.py")]
         if "--video" in args:
-            assert args[args.index("--video") + 1] == str(clone / "examples" / "silent.mp4")
+            assert args[args.index("--video") + 1] == str(clone / "examples" / "artemis-liftoff.mp4")
     # Execute the advertised program with a local-only --help command through Bash.
     smoke = subprocess.run(["bash", "-c", shlex.join(doctor[:2] + ["--help"])], text=True,
                            capture_output=True, check=True)
@@ -497,8 +497,9 @@ def clicks_wav(path, clicks, duration=8.0, rate=48000):
 
 
 @needs_ffmpeg
-def test_example_clip_is_silent_8s_720p30():
-    clip = REPO / "examples" / "silent.mp4"
+@pytest.mark.parametrize("filename", ["silent.mp4", "artemis-liftoff.mp4"])
+def test_example_clip_is_silent_8s_720p30(filename):
+    clip = REPO / "examples" / filename
     streams = mirelo.ffprobe(clip, "-show_streams")["streams"]
     assert [s["codec_type"] for s in streams] == ["video"]
     assert (streams[0]["width"], streams[0]["height"], streams[0]["r_frame_rate"]) == (1280, 720, "30/1")
