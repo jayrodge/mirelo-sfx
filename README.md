@@ -12,11 +12,10 @@ packages or virtual environment needed.
 
 ## Clone and set up
 
-The proposed repository name is `mirelo-sfx-openclaw`. A published clone URL
-has not been confirmed; replace `<REPOSITORY_URL>` below with the actual URL.
+The repository is currently private; use an account with access when cloning.
 
 ```bash
-git clone <REPOSITORY_URL> ~/mirelo-sfx-openclaw
+git clone https://github.com/jayrodge/mirelo-sfx-openclaw.git ~/mirelo-sfx-openclaw
 cd ~/mirelo-sfx-openclaw
 ./setup.sh
 cp .env.example .env
@@ -75,6 +74,12 @@ Approve the quoted cost in a second message to generate. See the
   The CLI paid command assumes you have accepted the quote.
 - Each job requests one variant and defaults to an 80-credit cap. Quotes above
   the cap or beyond the account's spend capacity are refused.
+- A quote is bound to the saved video and prompt. If you change the sound
+  description, run a fresh preflight and accept the new quote.
+- If a submission response is lost, retry the exact same `generate` command.
+  The saved request and key recover the original job. Recovery stops after
+  24 hours, or if the submission age is unknown; reconcile the original job
+  before deciding whether to start another paid generation.
 - Polling stops after five minutes. If the result is `poll_timeout`, continue
   with `python3 mirelo.py resume --out <OUT_FROM_PREFLIGHT>`. Resume never
   resubmits a job. Use a fresh folder for a new generation or refinement.
