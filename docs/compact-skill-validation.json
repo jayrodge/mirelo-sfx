@@ -1,0 +1,392 @@
+{
+  "records": [
+    {
+      "agent": "openclaw",
+      "action": "cost",
+      "session_id": "final-openclaw-cost-v6-20261003",
+      "helper_calls": [
+        "python3 /home/jayrodge/mirelo-sfx/mirelo.py preflight \\\n  --video ~/mirelo-sfx/examples/alien-shooter.mp4 \\\n  --prompt \"Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.\" \\\n  --out ~/mirelo-sfx/runs/final-openclaw-cost-v6-20261003"
+      ],
+      "result": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-cost-v6-20261003",
+        "job_id": null,
+        "status": "quoted",
+        "quoted_credits": 80,
+        "charged_credits": null,
+        "estimated_ms": 14132,
+        "max_credits": null,
+        "next": "Optional paid generation command: python3 /home/jayrodge/mirelo-sfx/mirelo.py generate --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 --prompt 'Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.' --out /home/jayrodge/mirelo-sfx/runs/final-openclaw-cost-v6-20261003"
+      },
+      "reported_json": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-cost-v6-20261003",
+        "job_id": null,
+        "status": "quoted",
+        "quoted_credits": 80,
+        "charged_credits": null,
+        "estimated_ms": 14132,
+        "max_credits": null,
+        "next": "Optional paid generation command: python3 /home/jayrodge/mirelo-sfx/mirelo.py generate --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 --prompt 'Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.' --out /home/jayrodge/mirelo-sfx/runs/final-openclaw-cost-v6-20261003"
+      },
+      "report_matches_helper": true,
+      "prompt_matches": true,
+      "output_matches": true,
+      "files_exist": {},
+      "source_sha256": "479c8b819b8343653a460f4ff4afd6ab684fe7818310819f9fd58cf39ae59a61",
+      "source_matches_original": true,
+      "critical_values_match": true
+    },
+    {
+      "agent": "openclaw",
+      "action": "generate",
+      "session_id": "final-openclaw-generate-v3-20261003",
+      "helper_calls": [
+        "mkdir -p ~/mirelo-sfx/runs/final-openclaw-generate-v3-20261003",
+        "python3 /home/jayrodge/mirelo-sfx/mirelo.py generate \\\n  --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 \\\n  --prompt \"Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.\" \\\n  --out ~/mirelo-sfx/runs/final-openclaw-generate-v3-20261003"
+      ],
+      "result": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003",
+        "job_id": "f4462b771d9272187328ae7cf2101084",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            1.8,
+            4.04,
+            6.26
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": true
+        }
+      },
+      "reported_json": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003",
+        "job_id": "f4462b771d9272187328ae7cf2101084",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            1.8,
+            4.04,
+            6.26
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": true
+        }
+      },
+      "report_matches_helper": true,
+      "prompt_matches": true,
+      "output_matches": true,
+      "files_exist": {
+        "silent": true,
+        "sound": true,
+        "with_sound": true,
+        "player": true,
+        "job": true
+      },
+      "source_sha256": "479c8b819b8343653a460f4ff4afd6ab684fe7818310819f9fd58cf39ae59a61",
+      "source_matches_original": true,
+      "critical_values_match": true
+    },
+    {
+      "agent": "openclaw",
+      "action": "resume",
+      "session_id": "final-openclaw-resume-v6-20261003",
+      "helper_calls": [
+        "ls /home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003",
+        "python3 /home/jayrodge/mirelo-sfx/mirelo.py resume --out /home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003"
+      ],
+      "result": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003",
+        "job_id": "f4462b771d9272187328ae7cf2101084",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            1.8,
+            4.04,
+            6.26
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": true
+        }
+      },
+      "reported_json": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003",
+        "job_id": "f4462b771d9272187328ae7cf2101084",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-openclaw-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            1.8,
+            4.04,
+            6.26
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": true
+        }
+      },
+      "report_matches_helper": true,
+      "prompt_matches": true,
+      "output_matches": true,
+      "files_exist": {
+        "silent": true,
+        "sound": true,
+        "with_sound": true,
+        "player": true,
+        "job": true
+      },
+      "source_sha256": "479c8b819b8343653a460f4ff4afd6ab684fe7818310819f9fd58cf39ae59a61",
+      "source_matches_original": true,
+      "critical_values_match": true
+    },
+    {
+      "agent": "hermes",
+      "action": "cost",
+      "session_id": "20261003_145028_01709d",
+      "helper_calls": [
+        "python3 /home/jayrodge/mirelo-sfx/mirelo.py preflight --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 --prompt \"Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.\" --out /home/jayrodge/mirelo-sfx/runs/final-hermes-cost-v6-20261003"
+      ],
+      "result": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-hermes-cost-v6-20261003",
+        "job_id": null,
+        "status": "quoted",
+        "quoted_credits": 80,
+        "charged_credits": null,
+        "estimated_ms": 14132,
+        "max_credits": null,
+        "next": "Optional paid generation command: python3 /home/jayrodge/mirelo-sfx/mirelo.py generate --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 --prompt 'Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.' --out /home/jayrodge/mirelo-sfx/runs/final-hermes-cost-v6-20261003"
+      },
+      "reported_json": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-hermes-cost-v6-20261003",
+        "job_id": null,
+        "status": "quoted",
+        "quoted_credits": 80,
+        "charged_credits": null,
+        "estimated_ms": 14132,
+        "next": "Optional paid generation command: python3 /home/jayrodge/mirelo-sfx/mirelo.py generate --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 --prompt 'Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.' --out /home/jayrodge/mirelo-sfx/runs/final-hermes-cost-v6-20261003"
+      },
+      "report_matches_helper": false,
+      "prompt_matches": true,
+      "output_matches": true,
+      "files_exist": {},
+      "source_sha256": "479c8b819b8343653a460f4ff4afd6ab684fe7818310819f9fd58cf39ae59a61",
+      "source_matches_original": true,
+      "critical_values_match": true
+    },
+    {
+      "agent": "hermes",
+      "action": "generate",
+      "session_id": "20261003_144327_8a0ee4",
+      "helper_calls": [
+        "python3 /home/jayrodge/mirelo-sfx/mirelo.py generate \\\n  --video /home/jayrodge/mirelo-sfx/examples/alien-shooter.mp4 \\\n  --prompt \"Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.\" \\\n  --out /home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003",
+        "cat /home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/job.json | python3 -m json.tool"
+      ],
+      "result": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003",
+        "job_id": "2078ce815337fa7dbc18cc626b245913",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            0.32,
+            1.96,
+            2.8,
+            4.18,
+            5.08,
+            6.34
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": false
+        }
+      },
+      "reported_json": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003",
+        "job_id": "2078ce815337fa7dbc18cc626b245913",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/player.html"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            0.32,
+            1.96,
+            2.8,
+            4.18,
+            5.08,
+            6.34
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": false
+        }
+      },
+      "report_matches_helper": false,
+      "prompt_matches": true,
+      "output_matches": true,
+      "files_exist": {
+        "silent": true,
+        "sound": true,
+        "with_sound": true,
+        "player": true,
+        "job": true
+      },
+      "source_sha256": "479c8b819b8343653a460f4ff4afd6ab684fe7818310819f9fd58cf39ae59a61",
+      "source_matches_original": true,
+      "critical_values_match": true
+    },
+    {
+      "agent": "hermes",
+      "action": "resume",
+      "session_id": "20261003_144913_227d72",
+      "helper_calls": [
+        "python3 /home/jayrodge/mirelo-sfx/mirelo.py resume --out ~/mirelo-sfx/runs/final-hermes-generate-v3-20261003"
+      ],
+      "result": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003",
+        "job_id": "2078ce815337fa7dbc18cc626b245913",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            0.32,
+            1.96,
+            2.8,
+            4.18,
+            5.08,
+            6.34
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": false
+        }
+      },
+      "reported_json": {
+        "out": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003",
+        "job_id": "2078ce815337fa7dbc18cc626b245913",
+        "status": "done",
+        "quoted_credits": 80,
+        "charged_credits": 80,
+        "files": {
+          "silent": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/silent.mp4",
+          "sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/sound.wav",
+          "with_sound": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/with-sound.mp4",
+          "player": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/player.html",
+          "job": "/home/jayrodge/mirelo-sfx/runs/final-hermes-generate-v3-20261003/job.json"
+        },
+        "sync": {
+          "detected_onsets_s": [
+            0.32,
+            1.96,
+            2.8,
+            4.18,
+            5.08,
+            6.34
+          ],
+          "expected_impacts_s": [
+            1.8,
+            4.0,
+            6.2
+          ],
+          "ok": false
+        }
+      },
+      "report_matches_helper": true,
+      "prompt_matches": true,
+      "output_matches": true,
+      "files_exist": {
+        "silent": true,
+        "sound": true,
+        "with_sound": true,
+        "player": true,
+        "job": true
+      },
+      "source_sha256": "479c8b819b8343653a460f4ff4afd6ab684fe7818310819f9fd58cf39ae59a61",
+      "source_matches_original": true,
+      "critical_values_match": true
+    }
+  ],
+  "skill_sha256": "2aed12a4d8e7ce4c7ae42b4e62d3d96775e7db66e8b6e8798c50735d9006a94f",
+  "credits_before": 3908,
+  "credits_after": 3748,
+  "paid_jobs": 2,
+  "credits_spent": 160
+}

@@ -95,3 +95,40 @@ generation or automatic refinement was run. Inspect playback and use the
 bundled successful sample for a predictable presentation fallback.
 
 [Exact request and saved result metadata](readme-prompt-validation.json).
+
+## Compact skill follow-up, October 3, 2026
+
+Live checks exposed output-directory mistakes, rounded estimates and omitted
+result paths. The revised skill keeps its 15-word discovery description and
+restores focused instructions for direct `--out`, complete JSON reporting and
+helper-based resume. The body is 619 words including frontmatter, versus 900
+before compaction. The Python helper and API generation parameters are unchanged.
+
+Both agents preserved the exact requested prompt and source-video hash, saved
+to the requested run directory, and completed one generation without another
+approval. Cost-only requests left job IDs and charges null. The two generations
+spent 160 credits total (3908 to 3748); subsequent resumes spent nothing.
+
+| Agent | Job ID | Quoted / charged | Detected onsets (s) | `sync.ok` |
+| --- | --- | --- | --- | --- |
+| OpenClaw | `f4462b771d9272187328ae7cf2101084` | 80 / 80 | `[1.8, 4.04, 6.26]` | true |
+| Hermes | `2078ce815337fa7dbc18cc626b245913` | 80 / 80 | `[0.32, 1.96, 2.8, 4.18, 5.08, 6.34]` | false |
+
+The final free resume checks returned JSON matching the helper for both agents,
+including every output path. The explicit tested resume request was:
+
+> Read the installed mirelo-sfx skill and use its resume command for the existing job in ~/mirelo-sfx/runs/RUN-DIRECTORY. Return the helper JSON without generating another variant.
+
+The final Hermes cost-only response preserved all quoted values but omitted the
+optional `max_credits: null` field and added prose despite the JSON-only rule.
+Earlier generic resume requests bypassed the helper, and some sessions attempted
+blocked code wrappers or Skill Workshop before recovering to the correct tool.
+These are remaining agent instruction-following limitations; complete verbatim
+reporting is not guaranteed on every turn. Use helper JSON and saved artifacts
+as authoritative evidence. Both agents reported the actual sync boolean.
+
+The Hermes audio missed all three ±100 ms timing windows despite exact input
+forwarding. This check establishes correct skill execution, not reproducible
+Mirelo audio quality or crowd-floor audibility. No automatic refinement ran.
+
+[Structured requests, tool commands and result comparisons](compact-skill-validation.json).
