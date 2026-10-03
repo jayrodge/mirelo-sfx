@@ -176,7 +176,7 @@ def test_fresh_generate_quotes_before_exactly_one_create_with_same_body(run):
 def test_quote_over_cap_is_refused_before_create(run):
     http = FakeHTTP(credits=81)
     with pytest.raises(mirelo.CreditCapError, match="81.*80"):
-        run("generate", http)
+        run("generate", http, max_credits=80)
     assert http.count("POST", "/generations?wait") == 0 and not (run.out / "job.json").exists()
 
 
@@ -189,7 +189,7 @@ def test_saved_quote_is_rechecked_against_cap_at_generate(run):
     run("preflight", FakeHTTP(credits=120), prompt="two bounces", max_credits=200)
     http = FakeHTTP(credits=120)
     with pytest.raises(mirelo.CreditCapError):
-        run("generate", http)
+        run("generate", http, max_credits=80)
     assert http.requests == []
 
 
@@ -428,7 +428,7 @@ def test_failed_requote_preserves_prior_snapshot_and_quote(run):
     original = mirelo.load_state(run.out)
     run.video.write_bytes(b"replacement")
     with pytest.raises(mirelo.CreditCapError):
-        run("preflight", FakeHTTP(credits=81), prompt="changed")
+        run("preflight", FakeHTTP(credits=81), prompt="changed", max_credits=80)
     assert mirelo.load_state(run.out) == original
     assert mirelo.saved_video(original).read_bytes() == b"video"
 
@@ -551,3 +551,24 @@ def test_generate_muxes_outputs_and_checks_sync(tmp_path):
     assert "gen_1" in (out / "player.html").read_text()
     assert KEY not in (out / "job.json").read_text()
     assert mirelo.resume(out, mirelo.Client(KEY, http))["sync"] == res["sync"]
+
+
+def test_default_generation_has_no_cap_but_submits_one_variant(run):
+    http = FakeHTTP(credits=500, create=(200, job_body("succeeded", url="https://dl/a.wav", credits=500)))
+    assert run("generate", http)["charged_credits"] == 500
+    creates = [r for r in http.requests if "/generations?wait" in r[1]]
+    assert len(creates) == 1 and json.loads(creates[0][3])["num_variants"] == 1
+
+
+def test_uncapped_unaffordable_generation_still_submits_nothing(run):
+    http = FakeHTTP(credits=500, shortfall=1)
+    with pytest.raises(mirelo.InsufficientCredits):
+        run("generate", http)
+    assert http.count("POST", "/generations?wait") == 0
+
+
+def test_cli_cap_is_optional_and_negative_is_refused(capsys):
+    args = ["generate", "--video", "unused.mp4", "--prompt", "sound"]
+    assert mirelo._parser().parse_args(args).max_credits is None
+    assert mirelo.main(args + ["--max-credits", "-1"]) == 2
+    assert "non-negative" in capsys.readouterr().out

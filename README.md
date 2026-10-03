@@ -1,24 +1,25 @@
-# Mirelo SFX for OpenClaw
+# Mirelo SFX for OpenClaw and Hermes
 
-Give a silent video sound effects through your existing OpenClaw agent.
+Give a silent video sound effects through your existing OpenClaw or Hermes agent.
 This skill calls Mirelo's hosted SFX API, then saves the audio, a video with
 sound, and a before/after player. Audio generation happens in the cloud;
 setup installs a skill for your current agent and requires no new model or agent.
 
 **Requirements:** Python 3.12+, FFmpeg (including `ffprobe`), a Mirelo API
-key with credits, and an existing OpenClaw installation for the agent workflow.
+key with credits, and an existing OpenClaw or Hermes installation for the agent workflow.
 The CLI also works directly. Runtime uses Python's standard library: no pip
 packages or virtual environment needed.
 
-## Clone and set up
+## Quick start
 
 The repository is currently private; use an account with access when cloning.
 
 ```bash
-git clone https://github.com/jayrodge/mirelo-sfx-openclaw.git ~/mirelo-sfx-openclaw
-cd ~/mirelo-sfx-openclaw
-./setup.sh
-cp .env.example .env
+git clone https://github.com/jayrodge/mirelo-sfx.git ~/mirelo-sfx
+cd ~/mirelo-sfx
+./setup.sh --agent openclaw
+# Or, for Hermes: ./setup.sh --agent hermes
+cp -n .env.example .env
 chmod 600 .env
 ```
 
@@ -31,8 +32,27 @@ python3 mirelo.py doctor
 ```
 
 `doctor` checks Python, FFmpeg, credentials and API access without generating
-audio. `setup.sh` installs the skill in `~/.openclaw/skills/mirelo-sfx` and points
-it at this clone. Keep the clone in place; rerun setup if you move it.
+audio. The installer prints the installed skill path:
+
+| Agent | Install command | Default skill folder |
+| --- | --- | --- |
+| OpenClaw | `./setup.sh --agent openclaw` | `~/.openclaw/skills/mirelo-sfx` |
+| Hermes | `./setup.sh --agent hermes` | `~/.hermes/skills/mirelo-sfx` |
+
+Open a fresh chat in your existing agent after installation. Keep the clone in
+place; rerun setup if you move it. Setup changes no agent version, model,
+gateway or config. The skill stays named `mirelo-sfx` for both agents.
+
+For a custom skills directory, set `OPENCLAW_SKILLS_DIR` or
+`HERMES_SKILLS_DIR` for the selected agent. Hermes installation deliberately
+uses the native `~/.hermes` home rather than an inherited `HERMES_HOME`:
+this matches the Build-a-Claw browser/terminal setup. If using another Hermes
+profile, point `HERMES_SKILLS_DIR` at that profile's actual skills folder.
+
+The agent's terminal must have access to Python 3.12+, FFmpeg, this clone and
+the key file. A Docker or remote terminal needs those inside its execution
+environment. `doctor` reports skill-folder checks for both agents; a found
+skill file confirms installation, while a successful chat turn confirms use.
 
 ## Try the alien-shooter game clip
 
@@ -48,7 +68,7 @@ This pre-generated sample plays without API access or spending credits.
 Check it on your presentation speaker before using it in a crowded room.
 
 Generate one sound design with one command. It uploads the clip, quotes the
-cost, checks the 80-credit cap and affordability, then submits one variant:
+cost, checks affordability, then submits one variant:
 
 ```bash
 python3 mirelo.py generate \
@@ -60,9 +80,9 @@ Read the cost, status and `out` in the JSON. Open `player.html` from that
 folder in a browser. Each completed run contains `silent.mp4`, `sound.wav`,
 `with-sound.mp4`, `player.html`, and `job.json`.
 
-Or ask your existing OpenClaw agent:
+Or ask your existing OpenClaw or Hermes agent in a fresh chat:
 
-> Add sound effects to ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4 with this prompt:
+> Add sound effects to ~/mirelo-sfx/examples/alien-shooter.mp4 with this prompt:
 > "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots." Report credits and detected onsets exactly as the JSON prints them.
 
 [Play the arcade game locally](examples/play-game.html): arrow keys move,
@@ -76,21 +96,24 @@ cannon. Ask the agent for that one sound design, then compare the result.
 The bundled sample is one laser-blast design; other styles require their own
 explicit generation request.
 
-An explicit generation or refinement request authorizes one paid job within
-the 80-credit cap. See the [demo script](docs/demo.md) for the presentation
+An explicit generation or refinement request authorizes one paid job. There
+is no default credit cap; the available balance still limits spending. See the [demo script](docs/demo.md) for the presentation
 sequence and fallback. The [Artemis launch sample](examples/artemis-liftoff-mirelo.mp4)
 remains available as an alternative.
 
 ## Cost, recovery, and credentials
 
 - `preflight` uploads your video to Mirelo and quotes credits; it starts no generation.
-- `generate` spends credits after its internal quote, cap and affordability checks.
+- `generate` spends credits after its internal quote and affordability check.
   The installed agent skill runs it directly for an explicit generation request.
   For cost-only requests, use `preflight` and stop after the quote.
-- Each job requests one variant and defaults to an 80-credit cap. Quotes above
-  the cap or beyond the account's spend capacity are refused.
+- Each job requests one variant. There is no default credit cap. Quotes
+  beyond the account's spend capacity are refused. Add `--max-credits 80`
+  only when you want an explicit 80-credit limit; a quote above a requested
+  limit stops before submission.
 - A quote is bound to the saved video and prompt. If you change the sound
-  description, run a fresh preflight with the new prompt, then generate.
+  description, run `generate` with the new prompt in a new folder; it quotes
+  those inputs before submitting.
   Requested refinements use a new folder; the agent never automatically iterates.
 - If a submission response is lost, retry the exact same `generate` command.
   The saved request and key recover the original job. Recovery stops after
@@ -105,32 +128,41 @@ remains available as an alternative.
 - `.env`, `runs/`, and `outputs/` are Git-ignored. Review generated files before
   sharing: they contain your video, prompt, and job metadata.
 
-## Validation
+## OpenClaw and Hermes examples
 
-On October 2, 2026, one direct alien-shooter generation on dspark quoted and
-charged 80 credits in 16.27 seconds. The eight-second H.264/AAC result is
-bundled unchanged. Measured onsets are `[0.0, 1.86, 4.08, 6.24]`; all three
-expected hits at `[1.8, 4.0, 6.2]` passed the ±100 ms signal check. The extra
-opening burst and near-full-scale peaks mean this still needs a listening
-check on the presentation speaker. Jay accepted the generated video in chat;
-crowded-room speaker playback remains unverified. The playable game uses a trimmed first-hit
-sample, with a 20 ms fade at the cut's end; it does not generate audio live.
-A fresh OpenClaw agent check awaits the separate gateway repair.
+Both agents used the installed `mirelo-sfx` skill to quote the arcade clip
+without generating, then generate one requested sound design. Each generation
+quoted and charged 80 credits and passed the three expected-hit signal check.
+These are real agent sessions; the screenshots show their reports.
 
-One direct CLI generation of the Artemis clip completed
-on dspark: 80 credits quoted and charged, 16.40 seconds for the full command,
-and an eight-second H.264/AAC result. The generated sample is included above.
-This verifies the direct CLI workflow; a fresh OpenClaw agent check awaits
-the separate gateway repair. Launch sound alignment needs manual watch/listen
-because this clip has no expected-impact sidecar.
+### OpenClaw
 
-The included `examples/silent.mp4` and `silent.json` remain the bouncing-ball sync fixture.
-On September 30, 2026, four agent-driven jobs on that ball clip succeeded at 80 credits each
-(320 total). Generation turns took about 20–30 seconds. Two outputs passed
-the clip's signal-based sync check; two failed. Jay approved run 1 after headphone playback on October 2, 2026.
-Validation on the actual event image and presentation setup remains pending,
-so these runs do not establish event Demo Ready status. Details and
-presentation gates are in the [demo notes](docs/demo.md).
+[Watch the OpenClaw result](examples/openclaw-result.mp4).
+
+![OpenClaw reporting the Mirelo skill result](docs/screenshots/openclaw.png)
+
+Tested with OpenClaw **2026.9.4** in an isolated embedded `main` session.
+The screenshot uses a temporary 2026.9.4 gateway displaying that same session;
+the native gateway and existing state were preserved. See the
+[validation record](docs/agent-validation.md) for the execution details.
+
+### Hermes
+
+[Watch the Hermes result](examples/hermes-result.mp4).
+
+![Hermes reporting the Mirelo skill result](docs/screenshots/hermes.png)
+
+Tested with native Hermes **v0.21.1 (2026.9.7)**. The dashboard resumed the
+CLI session, showing the same completed run. Both agents used local Qwen
+`nvidia/Qwen3.6-35B-A3B-NVFP4` for agent reasoning and Mirelo's hosted API
+for sound generation.
+
+See [exact jobs, timing units and test limitations](docs/agent-validation.md).
+The signal check allows extra sounds and does not establish crowded-room
+speaker quality. The [demo notes](docs/demo.md) include presentation checks
+and older fixture results.
+
+## Tests
 
 The tests mock Mirelo requests and spend no credits; FFmpeg exercises local
 media processing. CI runs them on Python 3.12 and 3.14.

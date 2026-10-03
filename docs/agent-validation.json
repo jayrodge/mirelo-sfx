@@ -1,0 +1,90 @@
+{
+  "validated_at": "2026-10-02",
+  "model": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+  "runtimes": {
+    "openclaw": "2026.9.4 (3a9d69d), isolated state, embedded main; viewed through isolated 9.4 Control UI",
+    "hermes": "v0.21.1 (2026.9.7), native installation, local terminal; per-invocation model override"
+  },
+  "runs": [
+    {
+      "run": "hermes-cost-20261002",
+      "status": "quoted",
+      "job_id": null,
+      "quoted_credits": 80,
+      "charged_credits": null,
+      "estimated_ms": 16411,
+      "sync": null,
+      "num_variants": 1
+    },
+    {
+      "run": "openclaw-cost-20261002",
+      "status": "quoted",
+      "job_id": null,
+      "quoted_credits": 80,
+      "charged_credits": null,
+      "estimated_ms": 16411,
+      "sync": null,
+      "num_variants": 1
+    },
+    {
+      "run": "hermes-demo-20261002",
+      "status": "done",
+      "job_id": "6c4ba76e1d683cac26920caf01f8deeb",
+      "quoted_credits": 80,
+      "charged_credits": 80,
+      "estimated_ms": null,
+      "sync": {
+        "detected_onsets_s": [
+          0.0,
+          1.82,
+          4.08,
+          6.26
+        ],
+        "expected_impacts_s": [
+          1.8,
+          4.0,
+          6.2
+        ],
+        "ok": true
+      },
+      "num_variants": 1
+    },
+    {
+      "run": "openclaw-demo-20261002",
+      "status": "done",
+      "job_id": "e108de5f2467e9b8e08eaaadd0604711",
+      "quoted_credits": 80,
+      "charged_credits": 80,
+      "estimated_ms": null,
+      "sync": {
+        "detected_onsets_s": [
+          0.02,
+          0.42,
+          1.82,
+          4.02,
+          6.26
+        ],
+        "expected_impacts_s": [
+          1.8,
+          4.0,
+          6.2
+        ],
+        "ok": true
+      },
+      "num_variants": 1
+    }
+  ],
+  "screenshots": {
+    "openclaw.png": "fb187d35d33d7e24ff4f8157b645085e65da58f078e622d1b9fa32d95bac6e4e",
+    "hermes.png": "4e7f6a26e31573e11b023ecd38c1eb00e1431095312af4743644df131fcc14f2"
+  },
+  "default_credit_cap": null,
+  "hermes_generation_cap_note": "This run began before the user removed the cap and explicitly requested 80 credits. Updated installed skill has no default cap.",
+  "test_result": "61 passed on Python 3.12 and 3.14",
+  "limitations": [
+    "Crowded speaker playback unverified",
+    "Additional measured onsets are present",
+    "ASUS event image not tested",
+    "Native dspark OpenClaw 2026.9.7 gateway left unchanged"
+  ]
+}

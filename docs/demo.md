@@ -3,7 +3,7 @@
 **Show silent gameplay, let someone choose its sound, then play the result.**
 The player ship shoots three enemies; each explosion produces a score increase.
 This gives the audience recognizable gameplay actions and distinct audio bursts.
-The existing OpenClaw skill generates one requested sound design.
+The existing OpenClaw or Hermes skill generates one requested sound design.
 
 ## Before presenting
 
@@ -34,13 +34,13 @@ large enemy craft, and earns 100 points per kill. Enemy explosions occur at
    game interaction; gameplay itself does not call Mirelo.
 3. If someone requests a live style, ask the existing agent for one generation:
 
-   > Add sound effects to ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4 with this
+   > Add sound effects to ~/mirelo-sfx/examples/alien-shooter.mp4 with this
    > prompt: "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots." Report credits,
    > detected onsets and sync exactly as the JSON prints them.
 
    Replace the sound description with the audience's chosen style. Keep three
    isolated action bursts and quiet gaps; generate only the requested style.
-4. The agent generates directly within the 80-credit cap. Compare the result
+4. The agent generates directly after quoting and checking the available balance. Compare the result
    with the silent gameplay. Authored sidecar times are expected kill events,
    not measured audio. A sync pass does not prove audio quality or room audibility.
 
@@ -66,8 +66,9 @@ The bundled video preserves the result without retiming or gain changes.
 The playable page reuses the first generated hit (source 1.84–2.56 seconds,
 20 ms fade at its end). It plays locally on enemy collision; there is no API
 call or new generation while playing. Jay accepted the generated video in chat. Actual crowded-room playback remains
-unverified. CLI validation and skill installation do not establish a fresh
-agent turn while the OpenClaw gateway is down.
+unverified. Fresh OpenClaw and Hermes agent turns are recorded separately in
+[agent validation](agent-validation.md). The OpenClaw test used isolated
+2026.9.4 state; it did not repair or replace the native gateway.
 
 Earlier on October 2, one direct `generate` command on dspark internally quoted
 and submitted one Artemis job. Quote and actual charge were 80 credits;
@@ -75,8 +76,8 @@ the complete CLI command took 16.40 seconds. The result is eight seconds of
 H.264 video with mono AAC audio at 44,100 Hz. Detected onsets were `[0.0]`;
 `sync.ok` is omitted because the launch has no expected-impact sidecar.
 These are execution/media checks, not headphone approval or event qualification.
-The updated skill is installed; a fresh agent check waits for the separate
-OpenClaw gateway repair.
+The updated skill is installed. See [agent validation](agent-validation.md)
+for the later isolated OpenClaw and native Hermes checks.
 
 These four runs used the retained `examples/silent.mp4` ball fixture, not the
 Artemis video. Its expected impacts occur at 2.0 s and 5.0 s, as recorded in

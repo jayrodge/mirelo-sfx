@@ -1,12 +1,12 @@
 ---
 name: mirelo-sfx
-description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`; there is no mirelo-sd, gen, or other command. For an explicit generation or refinement request, run `python3 ~/mirelo-sfx-openclaw/mirelo.py generate --video <video.mp4> --prompt \"<sound description>\"` immediately within the 80-credit cap; it uploads, quotes, checks affordability and submits one variant. A cost-only request uses preflight and must never generate. Demo clip: ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask or state the chosen prompt. Offer nothing beyond this skill. Read this SKILL.md before use."
+description: "Add synced sound effects to a silent video with Mirelo SFX (a PAID API). The only tool is `python3 ~/mirelo-sfx/mirelo.py`; there is no mirelo-sd, gen, or other command. For an explicit generation or refinement request, run `python3 ~/mirelo-sfx/mirelo.py generate --video <video.mp4> --prompt \"<sound description>\"` immediately; it uploads, quotes, checks affordability and submits one variant. A cost-only request uses preflight and must never generate. Demo clip: ~/mirelo-sfx/examples/alien-shooter.mp4. Report onsets, sync, credits and times exactly as the JSON prints them (never round; estimated_ms is an estimate). No sound description from the user? Ask or state the chosen prompt. Offer nothing beyond this skill. Read this SKILL.md before use."
 ---
 
 # Mirelo SFX
 
 Adds sound effects to a short silent video with Mirelo SFX 1.6 and builds a
-before/after player. The only tool is `python3 ~/mirelo-sfx-openclaw/mirelo.py`.
+before/after player. The only tool is `python3 ~/mirelo-sfx/mirelo.py`.
 Every command prints one JSON object. On failure it prints
 `{"error": ..., "message": ...}` and exits non-zero. Report what the JSON says;
 never guess output you did not see.
@@ -14,8 +14,9 @@ never guess output you did not see.
 ## Rules
 
 - An explicit request to generate sound or refine an existing result authorizes
-  the paid generation within the 80-credit cap. Run `generate` immediately;
-  it uploads, quotes, checks the cap and affordability, then submits one variant.
+  one paid generation. Run `generate` immediately; it uploads, quotes,
+  checks the available balance, then submits one variant. There is no default
+  credit cap; pass `--max-credits` only if the user requested a limit.
   Do not add a separate cost-approval step.
 - For a cost-only request, run `preflight` and report `quoted_credits` and
   `estimated_ms`. It uploads and quotes without generating; never follow a
@@ -41,9 +42,10 @@ never guess output you did not see.
 - Never read, print, copy, or edit `.env` or `~/.config/mirelo/credentials`,
   and never put an API key in a message or command. On `CredentialError`,
   stop and tell the user to add the key by hand.
-- Each job is capped at 80 credits. On `CreditCapError` or
-  `InsufficientCredits`, stop and report it. Do not raise `--max-credits`,
-  trim, or re-encode the video unless the user asks.
+- On `InsufficientCredits`, stop and report it. If the user requested a
+  limit, pass that limit with `--max-credits` and stop on `CreditCapError`.
+  Do not raise a requested limit, trim, or re-encode the video unless the
+  user asks. Never add a credit cap the user did not request.
 - One `--out` folder per generation. If `generate` returns
   `"status": "poll_timeout"`, run `resume` for that folder. Never run
   `generate` again for it; that could pay twice.
@@ -69,15 +71,15 @@ with source credit in `examples/README.md`.
    charged credits, status and output paths:
 
    ```bash
-   python3 ~/mirelo-sfx-openclaw/mirelo.py generate \
-     --video ~/mirelo-sfx-openclaw/examples/alien-shooter.mp4 \
+   python3 ~/mirelo-sfx/mirelo.py generate \
+     --video ~/mirelo-sfx/examples/alien-shooter.mp4 \
      --prompt "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots."
    ```
 
 2. If the status is `poll_timeout`:
 
    ```bash
-   python3 ~/mirelo-sfx-openclaw/mirelo.py resume --out <out>
+   python3 ~/mirelo-sfx/mirelo.py resume --out <out>
    ```
 
 3. For a requested refinement, run `generate` with the refined prompt and a

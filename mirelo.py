@@ -44,7 +44,7 @@ HTTP_TIMEOUT_S = 60
 POLL_INTERVAL_S = 5
 POLL_TIMEOUT_S = 300
 IDEMPOTENCY_RETENTION_S = 24 * 60 * 60
-DEFAULT_MAX_CREDITS = 80
+DEFAULT_MAX_CREDITS = None
 DEFAULT_CREDENTIALS = Path.home() / ".config" / "mirelo" / "credentials"
 
 TERMINAL = frozenset({"succeeded", "partially_succeeded", "failed", "canceled", "expired"})
@@ -368,10 +368,10 @@ def result(state: dict, out: Path, **extra) -> dict:
     return {"out": str(out), **{k: state.get(k) for k in keys if state.get(k) is not None or k != "message"}, **extra}
 
 
-def check_quote(quote: dict, max_credits: int) -> None:
+def check_quote(quote: dict, max_credits: int | None) -> None:
     if quote["affordable"] is False:
         raise InsufficientCredits(402, f"the Mirelo account cannot fund {quote['credits']} credits")
-    if quote["credits"] > max_credits:
+    if max_credits is not None and quote["credits"] > max_credits:
         raise CreditCapError(f"quote {quote['credits']} credits exceeds the {max_credits}-credit cap per job")
 
 
@@ -395,7 +395,7 @@ def saved_video(state: dict) -> Path:
     return video
 
 
-def preflight(video: Path, out: Path, client, prompt: str | None = None, max_credits: int = DEFAULT_MAX_CREDITS,
+def preflight(video: Path, out: Path, client, prompt: str | None = None, max_credits: int | None = DEFAULT_MAX_CREDITS,
               probe: Callable[[Path], float] = duration_s) -> dict:
     video = video.resolve()
     state = load_state(out)
@@ -435,7 +435,7 @@ def preflight(video: Path, out: Path, client, prompt: str | None = None, max_cre
     return result(state, out, estimated_ms=quote["estimated_ms"], max_credits=max_credits)
 
 
-def generate(video: Path, prompt: str, out: Path, client, max_credits: int = DEFAULT_MAX_CREDITS,
+def generate(video: Path, prompt: str, out: Path, client, max_credits: int | None = DEFAULT_MAX_CREDITS,
              poll_timeout: float = POLL_TIMEOUT_S, sleep: Callable[[float], None] = time.sleep,
              clock: Callable[[], float] = time.monotonic, probe: Callable[[Path], float] = duration_s,
              finish=finish_outputs) -> dict:
@@ -458,7 +458,7 @@ def generate(video: Path, prompt: str, out: Path, client, max_credits: int = DEF
     else:
         preflight(video, out, client, prompt, max_credits, probe)
         state = load_state(out)
-    if state["quoted_credits"] > max_credits:
+    if max_credits is not None and state["quoted_credits"] > max_credits:
         raise CreditCapError(f"quote {state['quoted_credits']} credits exceeds the {max_credits}-credit cap per job")
 
     snapshot = saved_video(state)
@@ -550,7 +550,12 @@ def doctor(transport: Transport = urllib_transport) -> tuple[dict, bool]:
     for tool in ("ffmpeg", "ffprobe"):
         checks[tool] = shutil.which(tool) or "missing"
         ok &= checks[tool] != "missing"
-    skill = Path.home() / ".openclaw" / "skills" / "mirelo-sfx" / "SKILL.md"
+    skill_dirs = {"openclaw": Path(os.environ.get("OPENCLAW_SKILLS_DIR") or Path.home() / ".openclaw" / "skills"),
+                  "hermes": Path(os.environ.get("HERMES_SKILLS_DIR") or Path.home() / ".hermes" / "skills")}
+    skill_paths = {agent: root / "mirelo-sfx" / "SKILL.md" for agent, root in skill_dirs.items()}
+    checks["skills"] = {agent: str(path) if path.is_file() else "not installed"
+                       for agent, path in skill_paths.items()}
+    skill = skill_paths["openclaw"]
     checks["skill"] = str(skill) if skill.is_file() else "not installed (run ./setup.sh)"
     try:
         key, source = load_api_key()
@@ -587,7 +592,7 @@ def _parser() -> argparse.ArgumentParser:
         p.add_argument("--prompt", required=(name == "generate"))
         p.add_argument("--out", help="run folder (default: runs/<timestamp> next to mirelo.py)")
         p.add_argument("--max-credits", type=int, default=DEFAULT_MAX_CREDITS,
-                       help=f"refuse a quote above this (default {DEFAULT_MAX_CREDITS})")
+                       help="optional per-job credit limit (default: no cap)")
     r = sub.add_parser("resume", help="keep polling/downloading a submitted job; never resubmits")
     r.add_argument("--out", required=True)
     return parser
@@ -600,6 +605,8 @@ def main(argv: list[str] | None = None) -> int:
             checks, ok = doctor()
             print(json.dumps({"ok": ok, **checks}, indent=2))
             return 0 if ok else 1
+        if getattr(args, "max_credits", None) is not None and args.max_credits < 0:
+            raise UsageError("--max-credits must be non-negative")
         out = Path(args.out).expanduser().resolve() if args.out else _default_out()
         if args.command == "resume":
             data = resume(out, Client(load_api_key()[0]))
@@ -609,6 +616,8 @@ def main(argv: list[str] | None = None) -> int:
             gen = ["python3", str(Path(__file__).resolve()), "generate" if args.prompt else "preflight",
                    "--video", str(video.resolve()),
                    "--prompt", args.prompt or "<describe the sound>", "--out", str(out)]
+            if args.max_credits is not None:
+                gen += ["--max-credits", str(args.max_credits)]
             data["next"] = (("Optional paid generation command: " if args.prompt else
                              "Choose a sound description, then get a fresh free quote: ")
                             + shlex.join(gen))
