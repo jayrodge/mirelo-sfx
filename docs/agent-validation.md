@@ -74,3 +74,24 @@ requests, affordability, optional limits, input mismatch and recovery.
 CI must pass for the published commit before describing that commit as CI
 verified. These agent checks do not establish readiness on a freshly imaged
 event machine, reboot persistence, or speaker audibility in a crowded room.
+
+## Exact shortened README prompt, October 3, 2026
+
+Tested the Try-it prompt verbatim from commit `7f2d620`, after cloning the
+private repository to `~/mirelo-sfx` and installing the skill for both agents.
+The checks used the same runtime arrangements described above. Both agents
+expanded the short request to the detailed example sound description in
+`SKILL.md` and completed one generation, quoted/charged at 80 credits each.
+
+| Agent | Job ID | Detected onsets, seconds | `sync.ok` |
+| --- | --- | --- | --- |
+| OpenClaw | `d62f55631701f14109e6b3fd53fe660f` | `[0.56, 1.9, 4.06, 6.34]` | `false` |
+| Hermes | `2b53fb87262b916a49e763b307033e15` | `[1.74, 4.1, 5.2, 6.28]` | `true` |
+
+The prompt works through both agent workflows. Sound timing varies: the
+OpenClaw result's last onset was 140 ms late, outside the detector's
+100 ms tolerance. Extra onsets are present in both results. No additional
+generation or automatic refinement was run. Inspect playback and use the
+bundled successful sample for a predictable presentation fallback.
+
+[Exact request and saved result metadata](readme-prompt-validation.json).

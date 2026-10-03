@@ -34,6 +34,7 @@ Ask OpenClaw or Hermes:
 > and 6.2 seconds. Keep silence between hits, with no music or speech.
 
 Open `player.html` from the output folder to compare before and after.
+Generated timing can vary; check playback before presenting.
 Generation spends credits immediately after a quote and balance check,
 with one variant and no default credit cap. Cost-only requests generate nothing.
 

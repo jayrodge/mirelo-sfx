@@ -1,0 +1,55 @@
+{
+  "tested_readme_commit": "7f2d6204eb7c80ec2e9a524c97454312cacf7217",
+  "tested_on": "2026-10-03",
+  "prompt": "Use mirelo-sfx to add arcade laser explosions to ~/mirelo-sfx/examples/alien-shooter.mp4. Sync the three hits at 1.8, 4.0, and 6.2 seconds. Keep silence between hits, with no music or speech.",
+  "installation": "Fresh private Git clone at ~/mirelo-sfx; setup installed skill for both agents; existing shared credential source used by helper only",
+  "runs": [
+    {
+      "out": "/home/jayrodge/mirelo-sfx/runs/20261003-141939",
+      "status": "done",
+      "job_id": "d62f55631701f14109e6b3fd53fe660f",
+      "prompt": "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.",
+      "quoted_credits": 80,
+      "charged_credits": 80,
+      "sync": {
+        "detected_onsets_s": [
+          0.56,
+          1.9,
+          4.06,
+          6.34
+        ],
+        "expected_impacts_s": [
+          1.8,
+          4.0,
+          6.2
+        ],
+        "ok": false
+      },
+      "num_variants": 1
+    },
+    {
+      "out": "/home/jayrodge/mirelo-sfx/runs/20261003-142036",
+      "status": "done",
+      "job_id": "2b53fb87262b916a49e763b307033e15",
+      "prompt": "Three powerful arcade laser-blast explosions synchronized to the three enemy hits at 1.8, 4.0, and 6.2 seconds. Each burst has a crisp electronic zap and crunchy explosive hit with a short decay. Quiet between bursts. No music, speech, ambience or extra shots.",
+      "quoted_credits": 80,
+      "charged_credits": 80,
+      "sync": {
+        "detected_onsets_s": [
+          1.74,
+          4.1,
+          5.2,
+          6.28
+        ],
+        "expected_impacts_s": [
+          1.8,
+          4.0,
+          6.2
+        ],
+        "ok": true
+      },
+      "num_variants": 1
+    }
+  ],
+  "interpretation": "Exact short request reached generation in both agents. Both used the full demo sound description in SKILL.md. Hermes passed sync; OpenClaw final hit was 140ms late and failed sync. Generation timing varies; no automatic refinement was run."
+}
