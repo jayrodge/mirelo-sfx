@@ -33,6 +33,8 @@ check permits extra onsets and does not prove listening quality.
 
 ## Protect inputs and credits
 
+Pass a requested `--out` directly to the helper; never move or rewrite run state.
+
 - Never read, print, copy or edit `.env` or `~/.config/mirelo/credentials`;
   the helper reads credentials itself. On `CredentialError`, stop and ask
   the user to configure the key manually. Never put keys in commands or chat.
@@ -53,6 +55,7 @@ check permits extra onsets and does not prove listening quality.
 Copy JSON values exactly: `status`, `job_id`, `quoted_credits`,
 `charged_credits`, output paths in `files`, and `sync.detected_onsets_s` /
 `sync.ok` when present. Label `expected_impacts_s` as expected, not detected.
-Onset times are seconds; `estimated_ms` is an estimate, not elapsed time.
+Onset times are seconds. Report `estimated_ms` as the exact integer in ms
+(estimated); do not round, convert units or present it as elapsed time.
 For errors or incomplete jobs, report the message and allowed recovery command.
 Do not automatically generate extra variants or offer hosting/sharing services.
