@@ -7,7 +7,6 @@ sound in the cloud; the skill saves audio, a video with sound, and a comparison 
 
 You need Python 3.12+, FFmpeg, an existing OpenClaw or Hermes installation,
 and a [Mirelo API key](https://mirelo.ai/developers) with credits.
-This repo is private, so cloning requires access.
 
 ```bash
 git clone https://github.com/jayrodge/mirelo-sfx.git ~/mirelo-sfx

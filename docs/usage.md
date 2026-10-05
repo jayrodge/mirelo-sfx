@@ -2,8 +2,6 @@
 
 ## Quick start
 
-The repository is currently private; use an account with access when cloning.
-
 ```bash
 git clone https://github.com/jayrodge/mirelo-sfx.git ~/mirelo-sfx
 cd ~/mirelo-sfx
