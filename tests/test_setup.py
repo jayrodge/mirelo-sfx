@@ -59,6 +59,7 @@ def test_native_agent_destination_and_rendering(install_env, args, agent):
     import shlex
     assert description == json.loads((clone / "SKILL.md").read_text().splitlines()[2].removeprefix("description: "))
     assert shlex.quote(str(clone / "mirelo.py")) in text
+    assert shlex.quote(str(clone / "mix_music.py")) in text
     assert shlex.quote(str(clone / "examples/alien-shooter.mp4")) in text
     assert config.read_text() == "model: leave-me-alone\n"
     assert not Path(env["HERMES_HOME"]).exists()

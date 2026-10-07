@@ -46,6 +46,7 @@ lines = text.splitlines()
 description = json.loads(lines[2].removeprefix("description: "))
 replacements = {
     "~/mirelo-sfx/mirelo.py": shlex.quote(str(repo / "mirelo.py")),
+    "~/mirelo-sfx/mix_music.py": shlex.quote(str(repo / "mix_music.py")),
     "~/mirelo-sfx/examples/alien-shooter.mp4": shlex.quote(str(repo / "examples" / "alien-shooter.mp4")),
 }
 lines[2] = "description: PLACEHOLDER"

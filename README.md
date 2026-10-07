@@ -40,6 +40,18 @@ with one variant and no default credit cap. Cost-only requests generate nothing.
 [Watch the sample](examples/alien-shooter-mirelo.mp4) ·
 [Play the game locally](examples/play-game.html) (arrows move, Space fires)
 
+For the music-backed version, ask:
+
+> Use mirelo-sfx to add three crisp arcade laser explosions to
+> ~/mirelo-sfx/examples/alien-shooter.mp4, synchronized at 1.8, 4.0 and
+> 6.2 seconds. No speech or extra shots. Save the generation in
+> ~/mirelo-sfx/runs/arcade-music-demo, then add the bundled background music
+> to that result and save ~/mirelo-sfx/runs/arcade-music-demo/with-music.mp4.
+
+Use a new run folder for each generation. [Watch with music](examples/alien-shooter-music.mp4).
+Music is composed locally, separate from Mirelo SFX, with dips around the hits;
+mixing uses no credits.
+
 ## Agent examples
 
 OpenClaw 2026.9.4, tested with isolated state. [Watch result](examples/openclaw-result.mp4).

@@ -448,7 +448,7 @@ def test_installer_quotes_complete_paths_and_keeps_yaml_description_valid(tmp_pa
     doctor = shlex.split(next(line.removeprefix("check: ") for line in output.splitlines()
                              if line.startswith("check: ")))
     assert doctor == ["python3", str(clone / "mirelo.py"), "doctor"]
-    advertised = installed.split("The only tool is `", 1)[1].split("`", 1)[0]
+    advertised = installed.split("The SFX tool is `", 1)[1].split("`", 1)[0]
     assert shlex.split(advertised) == ["python3", str(clone / "mirelo.py")]
     for block in installed.split("```bash\n")[1:]:
         command = block.split("```", 1)[0].replace("\\\n", " ")

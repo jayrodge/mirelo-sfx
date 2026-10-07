@@ -7,7 +7,7 @@ description: "Generate sound effects for silent videos, or quote their cost, usi
 
 Use your shell/terminal tool to run the helper below. Read this file with a
 file-read tool (OpenClaw) or `skill_view` (Hermes); do not use Skill Workshop
-or a code-execution wrapper. The only tool is `python3 ~/mirelo-sfx/mirelo.py`.
+or a code-execution wrapper. The SFX tool is `python3 ~/mirelo-sfx/mirelo.py`.
 It handles uploads, quoting, generation, polling and output assembly, returning
 one JSON object. Do not call the API directly or invent subcommands.
 Execute this helper for every quote, generation or resume request. For an
@@ -47,6 +47,8 @@ python3 ~/mirelo-sfx/mirelo.py generate \
 
 The demo's expected hits are 1.8, 4.0 and 6.2 seconds. Passing its signal
 check permits extra onsets and does not prove listening quality.
+
+For requested background music, run `python3 ~/mirelo-sfx/mix_music.py --video <files.with_sound> --out <new-music.mp4>` after generation or resume succeeds. The default is original local arcade music, dipped at the demo's three hits; for other videos pass `--music <local-track>`. This spends no credits. Return both helpers' complete JSON blocks unchanged, including the final `files.with_music` path. Do not ask Mirelo to generate music or regenerate SFX just to add backing.
 
 ## Protect inputs and credits
 

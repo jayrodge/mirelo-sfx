@@ -34,6 +34,14 @@ Actual audibility must be checked on the venue speaker. The onset detector
 checks proximity to expected events within 100 ms; it permits extra onsets and
 does not assess sound quality or crowded-room audibility.
 
+## Music-backed arcade demo
+
+[`alien-shooter-music.mp4`](alien-shooter-music.mp4) adds original local arcade
+music to the public SFX example above. `arcade-backing.wav` and its reproducible
+`compose_arcade_music.py` use no stock music or sampled recordings. The backing
+dips around the three expected hits. `mix_music.py` adds it to a completed SFX
+video without API calls. Check the mix on your presentation speaker.
+
 ## Artemis liftoff (alternative footage)
 
 `artemis-liftoff.mp4` is an eight-second silent, real-world video of Artemis I
